@@ -7,7 +7,7 @@
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
 #include <math.h>
-//#include <unistd.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -22,52 +22,6 @@ vector<string> split(const string &s, char delim) {
 }
 
 string parse_string(std::string);
-
-bool doubleGreater(double left, double right, double epsilon, bool orequal = false) {
-    if (fabs(left - right) < epsilon) {
-        return (orequal);
-    }
-    return (left > right);
-}
-
-
-bool validate_triangles(int coord[][6], int i) {
-    // calculate distances
-
-    int flag = 0;
-
-    double distAB = sqrt(pow(coord[i][2] - coord[i][0], 2) + pow(coord[i][3] - coord[i][1], 2));
-    double distBC = sqrt(pow(coord[i][4] - coord[i][2], 2) + pow(coord[i][5] - coord[i][3], 2));
-    double distCA = sqrt(pow(coord[i][0] - coord[i][4], 2) + pow(coord[i][1] - coord[i][5], 2));
-
-    /*cout << distAB << " distAB" << endl;
-    cout << distBC << " distBC" << endl;
-    cout << distCA << " distCA" << endl;*/
-
-
-    // if it passes all 3 test then it's valid.
-    if (doubleGreater((distAB + distBC), distCA, .0001)) {
-        flag++;
-    }
-    if (doubleGreater((distAB + distCA), distBC, .0001)) {
-        flag++;
-    }
-    if (doubleGreater((distBC + distCA), distAB, .0001)) {
-        flag++;
-    }
-
-    if (flag == 3) {
-        return True;
-    } else {
-        cout << "Found an invalid triangle\n";
-        return False;
-    }
-
-
-}
-
-
-
 
 /* here are our X variables */
 Display *dis;
@@ -88,8 +42,18 @@ int main(int argc, char *argv[]) {
 
     vector<string> vector1;
 
+    // count lines and initialize
+    int number_of_lines = 0;
+    std::string lines;
+    std::ifstream myFile(argv[1]);
+
+    while (std::getline(myFile, lines)) {
+        ++number_of_lines;
+    }
+    myFile.close();
+
     // coordinate container
-    int coordinates[4][6];
+    int coordinates[number_of_lines][6];
 
 /*
     stringstream ss;
@@ -104,30 +68,40 @@ int main(int argc, char *argv[]) {
 
             my_file.open(argv[1]);
 
-            while ( getline(my_file, line)) {
+            //cout << argv[1] << "\n";
 
-                line = parse_string(line);
+            if (my_file.is_open()) {
 
-                vector1 = split(line, ',');
+                cout << "File is open\n";
 
-                // assign
+                while (getline(my_file, line)) {
 
-                if (vector1[0] != "\n" ) {
-                    coordinates[count][0] = atoi(vector1[0].c_str());
-                    coordinates[count][1] = atoi(vector1[1].c_str());
-                    coordinates[count][2] = atoi(vector1[3].c_str());
-                    coordinates[count][3] = atoi(vector1[4].c_str());
-                    coordinates[count][4] = atoi(vector1[6].c_str());
-                    coordinates[count][5] = atoi(vector1[7].c_str());
+                    line = parse_string(line);
 
-                    // increase if true
-                    if (validate_triangles(coordinates, count)) {
+                    vector1 = split(line, ',');
+
+                    // assign
+
+                    //cout << "Getting line: " << count << " from the file\n";
+                    //cout << "Line =  " << line << "\n";
+
+                    if (vector1[0] != "\n" ) {
+                        coordinates[count][0] = atoi(vector1[0].c_str());
+                        coordinates[count][1] = atoi(vector1[1].c_str());
+                        coordinates[count][2] = atoi(vector1[3].c_str());
+                        coordinates[count][3] = atoi(vector1[4].c_str());
+                        coordinates[count][4] = atoi(vector1[6].c_str());
+                        coordinates[count][5] = atoi(vector1[7].c_str());
+
                         count++;
                     }
-
                 }
-
+            } else {
+                cout << "Couldn't open the specified file\n";
+                return 0;
             }
+
+
 
             cout << "\n" << argv[1] << " file was passes. yey\n" << endl;
             my_file.close();
@@ -184,8 +158,21 @@ int main(int argc, char *argv[]) {
                     XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
                 }*/
 
+                //cout << "Number of Triangles: " << count << "\n";
+
                 for (int i = 0; i < count; i++) {
-                    // 3 lines
+                    // 3 lines and points
+/*
+                    XDrawPoint(dis,win,gc,coordinates[i][0],coordinates[i][1]);
+                    XDrawPoint(dis,win,gc,coordinates[i][2],coordinates[i][3]);
+                    XDrawPoint(dis,win,gc,coordinates[i][4],coordinates[i][5]);
+*/
+
+                    /*cout << "Now drawing triangle: #"<< i << " " << coordinates[i][0] << " " << coordinates[i][1] << " - " << coordinates[i][2] << " " << coordinates[i][3] <<'\n';
+                    cout << "Now drawing triangle: #"<< i << " " << coordinates[i][2] << " " << coordinates[i][3] << " - " << coordinates[i][4] << " " << coordinates[i][5] <<'\n';
+                    cout << "Now drawing triangle: #"<< i << " " << coordinates[i][4] << " " << coordinates[i][5] << " - " << coordinates[i][0] << " " << coordinates[i][1] <<'\n';
+*/
+
                     XDrawLine(dis,win,gc, coordinates[i][0],coordinates[i][1], coordinates[i][2],coordinates[i][3]);
                     XDrawLine(dis,win,gc, coordinates[i][2],coordinates[i][3], coordinates[i][4],coordinates[i][5]);
                     XDrawLine(dis,win,gc, coordinates[i][4],coordinates[i][5], coordinates[i][0],coordinates[i][1]);
@@ -238,7 +225,6 @@ int main(int argc, char *argv[]) {
             cout << "Please pass a valid file\n";
             return 1;
         }
-
     } else if (argc < 2) {
         cout << "No arguments were passes start manual process\n";
         // call the window methods
