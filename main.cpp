@@ -55,6 +55,9 @@ int main(int argc, char *argv[]) {
     // coordinate container
     int coordinates[number_of_lines][6];
 
+    // start and target points
+    int start_target[2][2];
+
 /*
     stringstream ss;
 */
@@ -72,7 +75,7 @@ int main(int argc, char *argv[]) {
 
             if (my_file.is_open()) {
 
-                cout << "File is open\n";
+                //cout << "File is open\n";
 
                 while (getline(my_file, line)) {
 
@@ -101,9 +104,7 @@ int main(int argc, char *argv[]) {
                 return 0;
             }
 
-
-
-            cout << "\n" << argv[1] << " file was passes. yey\n" << endl;
+            cout << "(" << argv[1] << ") file was passed.\n" << endl;
             my_file.close();
 
             /*for (int i = 0; i < 4; i++) {
@@ -121,6 +122,8 @@ int main(int argc, char *argv[]) {
             char text[255];		/* a char buffer for KeyPress Events */
 
             init_x();
+
+            int num_of_clicks = 0;
 
             /* look for events forever... */
 #pragma clang diagnostic push
@@ -145,77 +148,49 @@ int main(int argc, char *argv[]) {
                     }
                     printf("You pressed the %c key!\n",text[0]);
                 }
-                /*if (event.type==ButtonPress) {
-                    *//* tell where the mouse Button was Pressed *//*
-                    int x=event.xbutton.x,
-                            y=event.xbutton.y;
 
-                    //strcpy(text,"X is FUN!");
-                    printf("You pressed a button at (%i,%i)\n",
-                           event.xbutton.x,event.xbutton.y);
-
-                    XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
-                    XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
-                }*/
-
-                //cout << "Number of Triangles: " << count << "\n";
-
+                // draw triangles
                 for (int i = 0; i < count; i++) {
                     // 3 lines and points
-/*
-                    XDrawPoint(dis,win,gc,coordinates[i][0],coordinates[i][1]);
-                    XDrawPoint(dis,win,gc,coordinates[i][2],coordinates[i][3]);
-                    XDrawPoint(dis,win,gc,coordinates[i][4],coordinates[i][5]);
-*/
-
-                    /*cout << "Now drawing triangle: #"<< i << " " << coordinates[i][0] << " " << coordinates[i][1] << " - " << coordinates[i][2] << " " << coordinates[i][3] <<'\n';
-                    cout << "Now drawing triangle: #"<< i << " " << coordinates[i][2] << " " << coordinates[i][3] << " - " << coordinates[i][4] << " " << coordinates[i][5] <<'\n';
-                    cout << "Now drawing triangle: #"<< i << " " << coordinates[i][4] << " " << coordinates[i][5] << " - " << coordinates[i][0] << " " << coordinates[i][1] <<'\n';
-*/
-
                     XDrawLine(dis,win,gc, coordinates[i][0],coordinates[i][1], coordinates[i][2],coordinates[i][3]);
                     XDrawLine(dis,win,gc, coordinates[i][2],coordinates[i][3], coordinates[i][4],coordinates[i][5]);
                     XDrawLine(dis,win,gc, coordinates[i][4],coordinates[i][5], coordinates[i][0],coordinates[i][1]);
                 }
 
+                // Now get the two points
+                if (event.type == ButtonPress) {
 
+                    num_of_clicks++;
 
-                // flatten the array
+                    //tell where the mouse Button was Pressed
+                    int x = event.xbutton.x;
+                    int y = event.xbutton.y;
 
-                /*int xy_points[count * 4][2];
+                    if (num_of_clicks == 1) {
+                        strcpy(text,"Start");
+                        start_target[0][0] = x;
+                        start_target[0][1] = y;
+                    } else if (num_of_clicks == 2) {
+                        strcpy(text,"Target");
+                        start_target[1][0] = x;
+                        start_target[1][1] = y;
+                    } else {
+                        continue;
+                    }
+                    printf("You pressed a button at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
 
-                int index = 0;
-
-                for (int j = 0; j < count; j++) {
-
-                    xy_points[j][0] = (short) coordinates[j][index];
-                    xy_points[j][1] = (short) coordinates[j][index + 1];
-
+                    XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
+                    XDrawPoint(dis, win, gc, x, y);
+                    XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
                 }
-
-                XPoint points[count];
-
-                for (int i = 0; i < count; i++) {
-                    points[i].x = (short) coordinates[i][0];
-                    points[i].y = (short) coordinates[i][1];
-                }*/
-
-                /*XPoint points[] = {
-                        {120, 120},
-                        {15, 15},
-                        {120, 15},
-                        {120, 120}
-                };*/
-
-                /*int npoints = sizeof(points)/sizeof(XPoint);
-
-                XDrawLines(dis, win, gc, points, npoints, CoordModeOrigin);*/
-
+                // now build the graph
 
             }
+
 #pragma clang diagnostic pop
 
             /*-------------------------------------------------------------------------------------------*/
+            // now we have everything yeyyyyyyy.
 
 
 
@@ -339,7 +314,7 @@ void init_x() {
                             500, 500, 5,black, white);
 
 
-    XSetStandardProperties(dis,win,"Howdy","Hi",None,NULL,0,NULL);
+    XSetStandardProperties(dis,win,"Shortest Path","Hi",None,NULL,0,NULL);
     XSelectInput(dis, win, ExposureMask|ButtonPressMask|KeyPressMask);
 
 
