@@ -15,23 +15,31 @@ bool ends_with(const std::string &, const std::string &);
 
 void split(const string &, char, vector<string> &);
 
+string parse_string(std::string);
+
+int det(int, int, int, int, int, int);
+
+void pair_generator(int offset, int k);
+
 vector<string> split(const string &s, char delim) {
     vector<string> elems;
     split(s, delim, elems);
     return elems;
 }
+vector<int> points;
 
-string parse_string(std::string);
-
+vector<int> pairs;
 /* here are our X variables */
 Display *dis;
 int screen;
 Window win;
-GC gc;
 
+GC gc;
 /* here are our X routines declared! */
 void init_x();
 void close_x();
+
+
 void redraw();
 
 
@@ -71,23 +79,14 @@ int main(int argc, char *argv[]) {
 
             my_file.open(argv[1]);
 
-            //cout << argv[1] << "\n";
-
             if (my_file.is_open()) {
 
-                //cout << "File is open\n";
-
                 while (getline(my_file, line)) {
-
+                    // parse and split
                     line = parse_string(line);
-
                     vector1 = split(line, ',');
 
                     // assign
-
-                    //cout << "Getting line: " << count << " from the file\n";
-                    //cout << "Line =  " << line << "\n";
-
                     if (vector1[0] != "\n" ) {
                         coordinates[count][0] = atoi(vector1[0].c_str());
                         coordinates[count][1] = atoi(vector1[1].c_str());
@@ -183,7 +182,50 @@ int main(int argc, char *argv[]) {
                     XDrawPoint(dis, win, gc, x, y);
                     XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
                 }
-                // now build the graph
+                // now make connections and check for valid edges
+                // generate pairs of 4 and test
+                // initialize the vector by number of triangles * 3
+                // because each triangle has 3 points.
+                for (int i = 0; i < count * 3; ++i) {
+                    points.push_back(i + 1);
+                }
+                // call recursive pair generator
+                // 4 is the number of elements in a pair.
+                pair_generator(0, 4);
+
+
+                /*
+                 *
+                 *
+                 * int rows = sizeof(coordinates) / sizeof(coordinates[0]);
+
+                int cols = sizeof(coordinates[0]) / sizeof(int);
+                 *
+                 *
+                 * for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < 3; j++) {
+                        // at 0,0
+
+                        for (int ini = i + 1; ini < rows - 1; ini++) {
+                                // connects to 1,0 one to many
+                                int edge_one = det(coordinates[i][0],coordinates[i][1],coordinates[ini][0],
+                                                   coordinates[ini][1],coordinates[i][0],coordinates[i][1]);
+
+                                int edge_two = det(coordinates[i][0],coordinates[i][1],coordinates[ini][0],
+                                                   coordinates[ini][1],coordinates[j][0],coordinates[j][1]);
+
+                                // p q intersect r s iff orient(pqr)
+
+                        }
+                    }
+                }
+
+                if (det(coordinates[ini][inj],coordinates[][],coordinates[][],
+                        coordinates[][],coordinates[][],coordinates[][])) {
+
+                }*/
+
+
 
             }
 
@@ -260,6 +302,19 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+void pair_generator(int offset, int k) {
+    if (k == 0) {
+        check_edge();
+        return;
+    }
+    for (int i = offset; i <= points.size() - k; ++i) {
+        pairs.push_back(points[i]);
+        // recurse
+        pair_generator(i + 1, k - 1);
+        pairs.pop_back();
+    }
+}
+
 bool ends_with(const std::string &str, const std::string &suffix) {
     return str.size() >= suffix.size() &&
            str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
@@ -311,7 +366,7 @@ void init_x() {
 
 
     win=XCreateSimpleWindow(dis,DefaultRootWindow(dis),0,0,
-                            500, 500, 5,black, white);
+                            400, 420, 5,black, white);
 
 
     XSetStandardProperties(dis,win,"Shortest Path","Hi",None,NULL,0,NULL);
@@ -337,4 +392,8 @@ void close_x() {
 
 void redraw() {
     XClearWindow(dis, win);
+}
+
+int det(int px, int py, int qx, int qy, int rx, int ry) {
+    return (px*qy)+(py*rx)+(qx*ry)-(qy*rx)-(px*ry)-(py*qx);
 };
