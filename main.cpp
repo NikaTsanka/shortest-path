@@ -19,29 +19,32 @@ string parse_string(std::string);
 
 int det(int, int, int, int, int, int);
 
-void pair_generator(int offset, int k);
+void pair_generator(int offset, int k, int coord[][2]);
+
+void check_edge(vector<int> combination, int coord[][2]);
 
 vector<string> split(const string &s, char delim) {
     vector<string> elems;
     split(s, delim, elems);
     return elems;
 }
-vector<int> points;
 
+vector<int> points;
 vector<int> pairs;
 /* here are our X variables */
 Display *dis;
 int screen;
-Window win;
 
+Window win;
 GC gc;
 /* here are our X routines declared! */
 void init_x();
+
+
 void close_x();
 
 
 void redraw();
-
 
 int main(int argc, char *argv[]) {
     // cout << "Hello, World!" << endl;
@@ -173,6 +176,41 @@ int main(int argc, char *argv[]) {
                         strcpy(text,"Target");
                         start_target[1][0] = x;
                         start_target[1][1] = y;
+                        // now that we have everything.
+                        // we make connections and check for valid edges
+                        // generate pairs of 4 and test
+                        // initialize the vector by number of triangles * 3
+                        // because each triangle has 3 points.
+                        for (int i = 0; i < count * 3; i++) {
+                            points.push_back(i);
+                        }
+                        // call recursive pair generator
+                        // 4 is the number of elements in a pair.
+                        // first index the matrix for easy access
+
+                        int rows = sizeof(coordinates) / sizeof(coordinates[0]);
+                        int cols = sizeof(coordinates[0]) / sizeof(int);
+
+                        int array[rows * 3][2];
+
+                        for (int i = 0; i < rows; i+=3) {
+                            for (int j = 0; j < cols; j += 2) {
+                                array[i][0] = coordinates[i][j];
+                                array[i][1] = coordinates[i][j + 1];
+                                cout << array[i][0] << " " << array[i][1] << "\n";
+                                i++;
+                            }
+                        }
+
+                        for (int i = 0; i < rows * 3; i++) {
+                             for (int j = 0; j < 2; j++) {
+                                    printf("array[%d][%d] = %d\n", i,j, array[i][j] );
+                             }
+                             printf("\n");
+                         }
+
+                        pair_generator(0, 4, array);
+
                     } else {
                         continue;
                     }
@@ -182,24 +220,13 @@ int main(int argc, char *argv[]) {
                     XDrawPoint(dis, win, gc, x, y);
                     XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
                 }
-                // now make connections and check for valid edges
-                // generate pairs of 4 and test
-                // initialize the vector by number of triangles * 3
-                // because each triangle has 3 points.
-                for (int i = 0; i < count * 3; ++i) {
-                    points.push_back(i + 1);
-                }
-                // call recursive pair generator
-                // 4 is the number of elements in a pair.
-                pair_generator(0, 4);
+
 
 
                 /*
                  *
                  *
-                 * int rows = sizeof(coordinates) / sizeof(coordinates[0]);
-
-                int cols = sizeof(coordinates[0]) / sizeof(int);
+                 *
                  *
                  *
                  * for (int i = 0; i < rows; i++) {
@@ -302,17 +329,38 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void pair_generator(int offset, int k) {
+void pair_generator(int offset, int k, int coord[][2]) {
     if (k == 0) {
-        check_edge();
-        return;
+        /*check_edge(pairs, coord);
+        return;*/
+
+        static int count = 0;
+        cout << "combination no " << (count++) << ": [ ";
+        for (int i = 0; i < pairs.size(); i++) {
+            cout << pairs[i] << " (" << coord[pairs[i]][0] << "," << coord[pairs[i]][1] << ") ";
+        }
+        cout << "] " << endl;
     }
     for (int i = offset; i <= points.size() - k; ++i) {
         pairs.push_back(points[i]);
         // recurse
-        pair_generator(i + 1, k - 1);
+        pair_generator(i + 1, k - 1, 0);
         pairs.pop_back();
     }
+}
+
+void check_edge(vector<int> combination, int coord[][2]) {
+    /*for (int i = 0; i < combination.size(); ++i) {
+
+    }*/
+
+    static int count = 0;
+    cout << "combination no " << (count++) << ": [ ";
+    for (int i = 0; i < combination.size(); i++) {
+        cout << combination[i] << " (" << coord[combination[i]][0] << "," << coord[combination[i]][1] << ") ";
+    }
+    cout << "] " << endl;
+
 }
 
 bool ends_with(const std::string &str, const std::string &suffix) {
