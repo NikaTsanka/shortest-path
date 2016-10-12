@@ -19,7 +19,7 @@ string parse_string(std::string);
 
 int det(int, int, int, int, int, int);
 
-void pair_generator(int offset, int k, int coord[][2]);
+void pair_generator(int, int, int);
 
 void check_edge(vector<int> combination, int coord[][2]);
 
@@ -192,14 +192,16 @@ int main(int argc, char *argv[]) {
                         int cols = sizeof(coordinates[0]) / sizeof(int);
 
                         int array[rows * 3][2];
+                        int k = 0;
 
-                        for (int i = 0; i < rows; i+=3) {
+                        for (int i = 0; i < rows * 3;) {
                             for (int j = 0; j < cols; j += 2) {
-                                array[i][0] = coordinates[i][j];
-                                array[i][1] = coordinates[i][j + 1];
-                                cout << array[i][0] << " " << array[i][1] << "\n";
+                                array[i][0] = coordinates[k][j];
+                                array[i][1] = coordinates[k][j + 1];
+                                //cout << array[i][0] << " " << array[i][1] << "\n";
                                 i++;
                             }
+                            k++;
                         }
 
                         for (int i = 0; i < rows * 3; i++) {
@@ -209,7 +211,7 @@ int main(int argc, char *argv[]) {
                              printf("\n");
                          }
 
-                        pair_generator(0, 4, array);
+                        //pair_generator(0, 4, array);
 
                     } else {
                         continue;
