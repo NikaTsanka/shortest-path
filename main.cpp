@@ -19,9 +19,9 @@ string parse_string(std::string);
 
 int det(int, int, int, int, int, int);
 
-void pair_generator(int, int, int);
+void pair_generator(int, int);
 
-void check_edge(vector<int> combination, int coord[][2]);
+void check_edge(vector<int>);
 
 vector<string> split(const string &s, char delim) {
     vector<string> elems;
@@ -31,19 +31,16 @@ vector<string> split(const string &s, char delim) {
 
 vector<int> points;
 vector<int> pairs;
+
 /* here are our X variables */
 Display *dis;
 int screen;
-
 Window win;
 GC gc;
+
 /* here are our X routines declared! */
 void init_x();
-
-
 void close_x();
-
-
 void redraw();
 
 int main(int argc, char *argv[]) {
@@ -198,20 +195,19 @@ int main(int argc, char *argv[]) {
                             for (int j = 0; j < cols; j += 2) {
                                 array[i][0] = coordinates[k][j];
                                 array[i][1] = coordinates[k][j + 1];
-                                //cout << array[i][0] << " " << array[i][1] << "\n";
                                 i++;
                             }
                             k++;
                         }
 
-                        for (int i = 0; i < rows * 3; i++) {
+                        /*for (int i = 0; i < rows * 3; i++) {
                              for (int j = 0; j < 2; j++) {
                                     printf("array[%d][%d] = %d\n", i,j, array[i][j] );
                              }
                              printf("\n");
-                         }
+                         }*/
 
-                        //pair_generator(0, 4, array);
+                        pair_generator(0, 4);
 
                     } else {
                         continue;
@@ -222,8 +218,6 @@ int main(int argc, char *argv[]) {
                     XDrawPoint(dis, win, gc, x, y);
                     XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
                 }
-
-
 
                 /*
                  *
@@ -254,17 +248,12 @@ int main(int argc, char *argv[]) {
 
                 }*/
 
-
-
             }
 
 #pragma clang diagnostic pop
 
             /*-------------------------------------------------------------------------------------------*/
             // now we have everything yeyyyyyyy.
-
-
-
         } else {
             cout << "The argument supplied is " << argv[1] << endl;
             cout << "But its not .txt format\n";
@@ -331,38 +320,26 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void pair_generator(int offset, int k, int coord[][2]) {
+void pair_generator(int offset, int k) {
     if (k == 0) {
-        /*check_edge(pairs, coord);
-        return;*/
-
-        static int count = 0;
-        cout << "combination no " << (count++) << ": [ ";
-        for (int i = 0; i < pairs.size(); i++) {
-            cout << pairs[i] << " (" << coord[pairs[i]][0] << "," << coord[pairs[i]][1] << ") ";
-        }
-        cout << "] " << endl;
+        check_edge(pairs);
+        return;
     }
-    for (int i = offset; i <= points.size() - k; ++i) {
+    for (int i = offset; i <= points.size() - k; i++) {
         pairs.push_back(points[i]);
         // recurse
-        pair_generator(i + 1, k - 1, 0);
+        pair_generator(i + 1, k - 1);
         pairs.pop_back();
     }
 }
 
-void check_edge(vector<int> combination, int coord[][2]) {
-    /*for (int i = 0; i < combination.size(); ++i) {
-
-    }*/
-
+void check_edge(vector<int> combination) {
     static int count = 0;
     cout << "combination no " << (count++) << ": [ ";
     for (int i = 0; i < combination.size(); i++) {
-        cout << combination[i] << " (" << coord[combination[i]][0] << "," << coord[combination[i]][1] << ") ";
+        cout << combination[i] << " (" << array[combination[i]][0] << "," << array[combination[i]][1] << ") ";
     }
     cout << "] " << endl;
-
 }
 
 bool ends_with(const std::string &str, const std::string &suffix) {
