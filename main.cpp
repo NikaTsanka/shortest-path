@@ -19,9 +19,9 @@ string parse_string(std::string);
 
 int det(int, int, int, int, int, int);
 
-void pair_generator(int, int);
+void pair_generator(int, int, const int [][2]);
 
-void check_edge(vector<int>);
+void check_edge(vector<int>,const int [][2]);
 
 vector<string> split(const string &s, char delim) {
     vector<string> elems;
@@ -31,6 +31,8 @@ vector<string> split(const string &s, char delim) {
 
 vector<int> points;
 vector<int> pairs;
+
+//int array[][2];
 
 /* here are our X variables */
 Display *dis;
@@ -195,19 +197,21 @@ int main(int argc, char *argv[]) {
                             for (int j = 0; j < cols; j += 2) {
                                 array[i][0] = coordinates[k][j];
                                 array[i][1] = coordinates[k][j + 1];
+                                //cout << array[i][0] << " " << array[i][1] << "\n";
                                 i++;
                             }
                             k++;
                         }
 
-                        /*for (int i = 0; i < rows * 3; i++) {
+                        for (int i = 0; i < rows * 3; i++) {
                              for (int j = 0; j < 2; j++) {
                                     printf("array[%d][%d] = %d\n", i,j, array[i][j] );
                              }
                              printf("\n");
-                         }*/
+                         }
 
-                        pair_generator(0, 4);
+                        pair_generator(0, 4, array);
+
 
                     } else {
                         continue;
@@ -254,6 +258,9 @@ int main(int argc, char *argv[]) {
 
             /*-------------------------------------------------------------------------------------------*/
             // now we have everything yeyyyyyyy.
+
+
+
         } else {
             cout << "The argument supplied is " << argv[1] << endl;
             cout << "But its not .txt format\n";
@@ -320,20 +327,32 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void pair_generator(int offset, int k) {
+
+
+
+
+
+
+
+
+
+
+
+
+void pair_generator(int offset, int k, const int coord[][2]) {
     if (k == 0) {
-        check_edge(pairs);
+        check_edge(pairs, coord);
         return;
     }
     for (int i = offset; i <= points.size() - k; i++) {
         pairs.push_back(points[i]);
         // recurse
-        pair_generator(i + 1, k - 1);
+        pair_generator(i + 1, k - 1, coord);
         pairs.pop_back();
     }
 }
 
-void check_edge(vector<int> combination) {
+void check_edge(vector<int> combination, const int array[][2]) {
     static int count = 0;
     cout << "combination no " << (count++) << ": [ ";
     for (int i = 0; i < combination.size(); i++) {
@@ -341,6 +360,24 @@ void check_edge(vector<int> combination) {
     }
     cout << "] " << endl;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 bool ends_with(const std::string &str, const std::string &suffix) {
     return str.size() >= suffix.size() &&
