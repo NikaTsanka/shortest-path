@@ -197,18 +197,17 @@ int main(int argc, char *argv[]) {
                             for (int j = 0; j < cols; j += 2) {
                                 array[i][0] = coordinates[k][j];
                                 array[i][1] = coordinates[k][j + 1];
-                                //cout << array[i][0] << " " << array[i][1] << "\n";
                                 i++;
                             }
                             k++;
                         }
 
-                        for (int i = 0; i < rows * 3; i++) {
+                        /*for (int i = 0; i < rows * 3; i++) {
                              for (int j = 0; j < 2; j++) {
                                     printf("array[%d][%d] = %d\n", i,j, array[i][j] );
                              }
                              printf("\n");
-                         }
+                         }*/
 
                         pair_generator(0, 4, array);
 
@@ -338,7 +337,6 @@ int main(int argc, char *argv[]) {
 
 
 
-
 void pair_generator(int offset, int k, const int coord[][2]) {
     if (k == 0) {
         check_edge(pairs, coord);
@@ -353,18 +351,25 @@ void pair_generator(int offset, int k, const int coord[][2]) {
 }
 
 void check_edge(vector<int> combination, const int array[][2]) {
-    static int count = 0;
+    /*static int count = 0;
     cout << "combination no " << (count++) << ": [ ";
     for (int i = 0; i < combination.size(); i++) {
         cout << combination[i] << " (" << array[combination[i]][0] << "," << array[combination[i]][1] << ") ";
     }
-    cout << "] " << endl;
+    cout << "] " << endl;*/
+
+    det(array[combination[i]][0],array[combination[i]][0],array[combination[i]][0],
+    array[combination[i]][0],array[combination[i]][0],array[combination[i]][0]);
+
+
 }
 
 
 
 
-
+int det(int px, int py, int qx, int qy, int rx, int ry) {
+    return (px*qy)+(py*rx)+(qx*ry)-(qy*rx)-(px*ry)-(py*qx);
+};
 
 
 
@@ -458,6 +463,3 @@ void redraw() {
     XClearWindow(dis, win);
 }
 
-int det(int px, int py, int qx, int qy, int rx, int ry) {
-    return (px*qy)+(py*rx)+(qx*ry)-(qy*rx)-(px*ry)-(py*qx);
-};
