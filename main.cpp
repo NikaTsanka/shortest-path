@@ -358,8 +358,39 @@ void check_edge(vector<int> combination, const int array[][2]) {
     }
     cout << "] " << endl;*/
 
-    det(array[combination[i]][0],array[combination[i]][0],array[combination[i]][0],
-    array[combination[i]][0],array[combination[i]][0],array[combination[i]][0]);
+    /*Just the formula
+    If (((det (p, q , r) * det(p q s) ) < 0)
+    And
+     ((Det (s r p) * det ( s r q))< 0)
+Then the edge pq intersects sr*/
+
+    int pqr = 0, pqs = 0, srp = 0, srq = 0;
+
+    // p - 0, q - 1, r - 2, s - 3
+    // x - 0, y - y
+
+
+    pqr = det(array[combination[0]][0],array[combination[0]][1], // p
+              array[combination[1]][0],array[combination[1]][1], // q
+              array[combination[2]][0],array[combination[2]][1]); // r
+
+    pqs = det(array[combination[0]][0],array[combination[0]][1],
+              array[combination[1]][0],array[combination[1]][1],
+              array[combination[3]][0],array[combination[3]][1]);
+
+    srp = det(array[combination[3]][0],array[combination[3]][1],
+              array[combination[2]][0],array[combination[2]][1],
+              array[combination[0]][0],array[combination[0]][1]);
+
+    srq = det(array[combination[3]][0],array[combination[3]][1],
+              array[combination[2]][0],array[combination[2]][1],
+              array[combination[1]][0],array[combination[1]][1]);
+
+    if (((pqr * pqs) < 0) && ((srp * srq) < 0)) {
+        cout << "Intersection\n";
+    } else {
+        cout << "Nope\n";
+    }
 
 
 }
