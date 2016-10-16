@@ -351,12 +351,12 @@ void pair_generator(int offset, int k, const int coord[][2]) {
 }
 
 void check_edge(vector<int> combination, const int array[][2]) {
-    /*static int count = 0;
+    static int count = 0;
     cout << "combination no " << (count++) << ": [ ";
     for (int i = 0; i < combination.size(); i++) {
         cout << combination[i] << " (" << array[combination[i]][0] << "," << array[combination[i]][1] << ") ";
     }
-    cout << "] " << endl;*/
+    cout << "] " << endl;
 
     /*Just the formula
     If (((det (p, q , r) * det(p q s) ) < 0)
