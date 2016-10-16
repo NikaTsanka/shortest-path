@@ -306,9 +306,9 @@ string parse_string(std::string);
 
 int det(int, int, int, int, int, int);
 
-void pair_generator(int, int, const int **, const Graph *graph);
+void pair_generator(int, int, const int [][2], const Graph *graph);
 
-void check_edge(vector<int>, const int **, const Graph *graph);
+void check_edge(vector<int>, const int [][2], const Graph *graph);
 
 vector<string> split(const string &s, char delim) {
     vector<string> elems;
@@ -634,7 +634,7 @@ int main(int argc, char *argv[]) {
 
 
 
-void pair_generator(int offset, int k, const int **coord, const Graph *graph) {
+void pair_generator(int offset, int k, const int coord[][2], const Graph *graph) {
     if (k == 0) {
         check_edge(pairs, coord, graph);
         return;
@@ -647,7 +647,7 @@ void pair_generator(int offset, int k, const int **coord, const Graph *graph) {
     }
 }
 
-void check_edge(vector<int> combination, const int **coord_array, const Graph *graph) {
+void check_edge(vector<int> combination, const int coord_array[][2], const Graph *graph) {
     static int count = 0;
     cout << "combination no " << (count++) << ": [ ";
     for (int i = 0; i < combination.size(); i++) {
@@ -698,14 +698,13 @@ void check_edge(vector<int> combination, const int **coord_array, const Graph *g
                            coord_array[combination[3]][0],coord_array[combination[3]][1]);
 
         // add to the graph by index
-
+        cout << "\n1: " << combination[0] << " distpq: " << distpq << " 2: " << combination[1] << "\n";
         addEdge((Graph *) graph, combination[0], distpq, combination[1] );
 
+
+        cout << "\n1: " << combination[2] << " distsr: " << distsr << " 2: " << combination[3] << "\n";
         addEdge((Graph *) graph, combination[2], distsr, combination[3] );
-
     }
-
-
 }
 
 int calc_dist(const int x1, const int y1, const int x2, const int y2) {
