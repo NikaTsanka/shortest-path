@@ -6,15 +6,11 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
-#include <math.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <limits.h>
 
 using namespace std;
 
 /*******************************************************************************/
+/*
 
 // A structure to represent a node in adjacency list
 struct AdjListNode
@@ -292,11 +288,12 @@ void dijkstra(struct Graph* graph, int src)
     // print the calculated shortest distances
     printArr(dist, V);
 }
+*/
 
 /*******************************************************************************/
 
-
-
+const int INIT_COLS = 6;
+const int NUM_COLS = 2;
 
 bool ends_with(const std::string &, const std::string &);
 
@@ -306,33 +303,26 @@ string parse_string(std::string);
 
 int det(int, int, int, int, int, int);
 
-void pair_generator(int, int, const int [][2], const Graph *graph);
+void check_edge(const int [][2]);
 
-void check_edge(vector<int>, const int [][2], const Graph *graph);
+int calc_dist(const int x1, const int y1, const int x2, const int y2);
 
 vector<string> split(const string &s, char delim) {
     vector<string> elems;
     split(s, delim, elems);
     return elems;
 }
-
-vector<int> points;
-vector<int> pairs;
-
-//int array[][2];
-
 /* here are our X variables */
 Display *dis;
 int screen;
 Window win;
-GC gc;
 
+GC gc;
 /* here are our X routines declared! */
 void init_x();
 void close_x();
-void redraw();
 
-int calc_dist(const int x1, const int y1, const int x2, const int y2);
+void redraw();
 
 int main(int argc, char *argv[]) {
     // cout << "Hello, World!" << endl;
@@ -352,21 +342,17 @@ int main(int argc, char *argv[]) {
     myFile.close();
 
     // coordinate container
-    int coordinates[number_of_lines][6];
+    int coordinates[number_of_lines][INIT_COLS];
 
     // start and target points
     int start_target[2][2];
-
-/*
-    stringstream ss;
-*/
 
     if (argc == 2) {
         if (ends_with(argv[1], ".txt")) {
             // open the file
             ifstream my_file;
 
-            int count = 0;
+            int line_count = 0;
 
             my_file.open(argv[1]);
 
@@ -379,14 +365,14 @@ int main(int argc, char *argv[]) {
 
                     // assign
                     if (vector1[0] != "\n" ) {
-                        coordinates[count][0] = atoi(vector1[0].c_str());
-                        coordinates[count][1] = atoi(vector1[1].c_str());
-                        coordinates[count][2] = atoi(vector1[3].c_str());
-                        coordinates[count][3] = atoi(vector1[4].c_str());
-                        coordinates[count][4] = atoi(vector1[6].c_str());
-                        coordinates[count][5] = atoi(vector1[7].c_str());
+                        coordinates[line_count][0] = atoi(vector1[0].c_str());
+                        coordinates[line_count][1] = atoi(vector1[1].c_str());
+                        coordinates[line_count][2] = atoi(vector1[3].c_str());
+                        coordinates[line_count][3] = atoi(vector1[4].c_str());
+                        coordinates[line_count][4] = atoi(vector1[6].c_str());
+                        coordinates[line_count][5] = atoi(vector1[7].c_str());
 
-                        count++;
+                        line_count++;
                     }
                 }
             } else {
@@ -433,14 +419,14 @@ int main(int argc, char *argv[]) {
                     /* use the XLookupString routine to convert the invent
                        KeyPress data into regular text.  Weird but necessary...
                     */
-                    if (text[0]=='q') {
+                    if (text[0]=='q' || text[0]=='Q') {
                         close_x();
                     }
                     printf("You pressed the %c key!\n",text[0]);
                 }
 
                 // draw triangles
-                for (int i = 0; i < count; i++) {
+                for (int i = 0; i < line_count; i++) {
                     // 3 lines and points
                     XDrawLine(dis,win,gc, coordinates[i][0],coordinates[i][1], coordinates[i][2],coordinates[i][3]);
                     XDrawLine(dis,win,gc, coordinates[i][2],coordinates[i][3], coordinates[i][4],coordinates[i][5]);
@@ -466,48 +452,56 @@ int main(int argc, char *argv[]) {
                         start_target[1][1] = y;
                         // now that we have everything.
                         // we make connections and check for valid edges
-                        // generate pairs of 4 and test
-                        // initialize the vector by number of triangles * 3
-                        // because each triangle has 3 points.
-                        for (int i = 0; i < count * 3; i++) {
-                            points.push_back(i);
-                        }
-                        // call recursive pair generator
-                        // 4 is the number of elements in a pair.
+                        const int num_of_vertex = (line_count * 3) + 2;
+
                         // first index the matrix for easy access
-
-                        int rows = sizeof(coordinates) / sizeof(coordinates[0]);
-                        int cols = sizeof(coordinates[0]) / sizeof(int);
-
-                        int shrinked_array[rows * 3][2];
+                        int shrink_array[num_of_vertex][NUM_COLS];
                         int k = 0;
 
-                        for (int i = 0; i < rows * 3;) {
-                            for (int j = 0; j < cols; j += 2) {
-                                shrinked_array[i][0] = coordinates[k][j];
-                                shrinked_array[i][1] = coordinates[k][j + 1];
+                        // add start at 0 and target at as last point
+
+                        shrink_array[0][0] = start_target[0][0];
+                        shrink_array[0][1] = start_target[0][1];
+                        for (int i = 1; i < line_count * 3;) {
+                            for (int j = 0; j < INIT_COLS; j += 2) {
+                                shrink_array[i][0] = coordinates[k][j];
+                                shrink_array[i][1] = coordinates[k][j + 1];
                                 i++;
                             }
                             k++;
                         }
+                        shrink_array[(line_count * 3) + 1][0] = start_target[1][0];
+                        shrink_array[(line_count * 3) + 1][1] = start_target[1][1];
 
-                        /*for (int i = 0; i < rows * 3; i++) {
+                        for (int i = 0; i < num_of_vertex; i++) {
                              for (int j = 0; j < 2; j++) {
-                                    printf("shrinked_array[%d][%d] = %d\n", i,j, shrinked_array[i][j] );
+                                    printf("shrink_array[%d][%d] = %d\n", i,j, shrink_array[i][j] );
                              }
                              printf("\n");
-                         }*/
+                         }
 
-                        int vert = (rows * 3 ) * 2;
+                        int p[2];
+                        int q[2];
 
-                        // create the graph
+                        int r[2];
+                        int s[2];
 
-                        struct Graph* graph = createGraph(vert);
+                        /*// create the graph
+                        // pick two vertex and create an edge
+                        for (int l = 0; l < num_of_vertex; l++) {
+                            // pick two points
+                            p[0] = shrink_array[l][0];
+                            p[1] = shrink_array[l][1];
+                            q[0] = shrink_array[l + 1][0];
+                            q[1] = shrink_array[l + 1][1];
 
-                        pair_generator(0, 4, shrinked_array, graph);
+                            // now compare to all possible edges from point 0
+                            for (int i = 0; i < num_of_vertex; i++) {
+                                // create an edge
+                                r
 
-                        dijkstra(graph, 0);
-
+                            }
+                        }*/
 
                     } else {
                         continue;
@@ -518,36 +512,6 @@ int main(int argc, char *argv[]) {
                     XDrawPoint(dis, win, gc, x, y);
                     XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
                 }
-
-                /*
-                 *
-                 *
-                 *
-                 *
-                 *
-                 * for (int i = 0; i < rows; i++) {
-                    for (int j = 0; j < 3; j++) {
-                        // at 0,0
-
-                        for (int ini = i + 1; ini < rows - 1; ini++) {
-                                // connects to 1,0 one to many
-                                int edge_one = det(coordinates[i][0],coordinates[i][1],coordinates[ini][0],
-                                                   coordinates[ini][1],coordinates[i][0],coordinates[i][1]);
-
-                                int edge_two = det(coordinates[i][0],coordinates[i][1],coordinates[ini][0],
-                                                   coordinates[ini][1],coordinates[j][0],coordinates[j][1]);
-
-                                // p q intersect r s iff orient(pqr)
-
-                        }
-                    }
-                }
-
-                if (det(coordinates[ini][inj],coordinates[][],coordinates[][],
-                        coordinates[][],coordinates[][],coordinates[][])) {
-
-                }*/
-
             }
 
 #pragma clang diagnostic pop
@@ -623,37 +587,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-void pair_generator(int offset, int k, const int coord[][2], const Graph *graph) {
-    if (k == 0) {
-        check_edge(pairs, coord, graph);
-        return;
-    }
-    for (int i = offset; i <= points.size() - k; i++) {
-        pairs.push_back(points[i]);
-        // recurse
-        pair_generator(i + 1, k - 1, coord, graph);
-        pairs.pop_back();
-    }
-}
-
-void check_edge(vector<int> combination, const int coord_array[][2], const Graph *graph) {
-    static int count = 0;
-    cout << "combination no " << (count++) << ": [ ";
-    for (int i = 0; i < combination.size(); i++) {
-        cout << combination[i] << " (" << coord_array[combination[i]][0] << "," << coord_array[combination[i]][1] << ") ";
-    }
-    cout << "] " << endl;
+void check_edge(const int coord_array[][2]) {
 
     /*Just the formula
         If (((det (p, q , r) * det(p q s) ) < 0)
@@ -670,7 +604,7 @@ void check_edge(vector<int> combination, const int coord_array[][2], const Graph
     // x - 0, y - y
 
 
-    pqr = det(coord_array[combination[0]][0],coord_array[combination[0]][1], // p
+    /*pqr = det(coord_array[combination[0]][0],coord_array[combination[0]][1], // p
               coord_array[combination[1]][0],coord_array[combination[1]][1], // q
               coord_array[combination[2]][0],coord_array[combination[2]][1]); // r
 
@@ -684,26 +618,39 @@ void check_edge(vector<int> combination, const int coord_array[][2], const Graph
 
     srq = det(coord_array[combination[3]][0],coord_array[combination[3]][1],
               coord_array[combination[2]][0],coord_array[combination[2]][1],
-              coord_array[combination[1]][0],coord_array[combination[1]][1]);
+              coord_array[combination[1]][0],coord_array[combination[1]][1]);*/
 
     if (((pqr * pqs) < 0) && ((srp * srq) < 0)) {
         cout << "Intersection\n";
     } else {
         cout << "Nope\n";
         // calc distance from p to q, r to s
-        distpq = calc_dist(coord_array[combination[0]][0],coord_array[combination[0]][1], // p
+        /*distpq = calc_dist(coord_array[combination[0]][0],coord_array[combination[0]][1],
                            coord_array[combination[1]][0],coord_array[combination[1]][1]);
 
-        distsr = calc_dist(coord_array[combination[2]][0],coord_array[combination[2]][1], // p
+        distsr = calc_dist(coord_array[combination[2]][0],coord_array[combination[2]][1],
                            coord_array[combination[3]][0],coord_array[combination[3]][1]);
 
-        // add to the graph by index
-        cout << "\n1: " << combination[0] << " distpq: " << distpq << " 2: " << combination[1] << "\n";
-        addEdge((Graph *) graph, combination[0], distpq, combination[1] );
+        std::string s0 = std::to_string(combination[0]) + " " + std::to_string(combination[1]);
+        std::string s1 = std::to_string(combination[2]) + " " + std::to_string(combination[3]);*/
+
+        /*// add to the graph by index
+        if (std::find(edges.begin(), edges.end(), s0) == edges.end()) {
+
+            cout << combination[0] << " distpq: " << distpq << " " << combination[1] << "\n";
+            //addEdge(graph, combination[0], distpq, combination[1] );
+
+            edges.push_back(s0);
+        }
+        if (std::find(edges.begin(), edges.end(), s1) == edges.end()) {
+
+            cout << combination[2] << " distsr: " << distsr << " " << combination[3] << "\n";
+            //addEdge(graph, combination[2], distsr, combination[3] );
+
+            edges.push_back(s1);
+        }*/
 
 
-        cout << "\n1: " << combination[2] << " distsr: " << distsr << " 2: " << combination[3] << "\n";
-        addEdge((Graph *) graph, combination[2], distsr, combination[3] );
     }
 }
 
@@ -711,18 +658,9 @@ int calc_dist(const int x1, const int y1, const int x2, const int y2) {
     return (int) sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
 }
 
-
 int det(int px, int py, int qx, int qy, int rx, int ry) {
     return (px*qy)+(py*rx)+(qx*ry)-(qy*rx)-(px*ry)-(py*qx);
 };
-
-
-
-
-
-
-
-
 
 
 
@@ -750,20 +688,9 @@ string parse_string(std::string str) {
     // erase the ending
     str.erase(str.length() - 1, 1);
 
-
-    /*std::size_t found = str.find_first_of(" ");
-
-    while (found != std::string::npos) {
-        str[found] = '\0';
-        found = str.find_first_of(" ", found + 1);
-    }*/
-
     std::replace(str.begin(), str.end(), ' ', '\0');
-
     std::replace(str.begin(), str.end(), '(', ',');
-
     std::replace(str.begin(), str.end(), ')', ',');
-
 
     return str;
 }
