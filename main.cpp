@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <list>
 #include <algorithm>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -191,34 +192,62 @@ int main(int argc, char *argv[]) {
                         shrink_array[(line_count * 3) + 1][1] = start_target[1][1];
 
                         for (int i = 0; i < num_of_vertex; i++) {
-                             for (int j = 0; j < 2; j++) {
-                                    printf("shrink_array[%d][%d] = %d\n", i,j, shrink_array[i][j] );
-                             }
-                             printf("\n");
-                         }
+                            for (int j = 0; j < 2; j++) {
+                                printf("shrink_array[%d][%d] = %d\n", i,j, shrink_array[i][j] );
+                            }
+                            printf("\n");
+                        }
 
-                        int p[2];
+
+                        for (int l = 0; l < num_of_vertex; l++) {
+                            // 1. check if direct edge exists between start and target
+                            if (l == 0) {
+                                // start vertex are at 0,0 and 0,1
+
+                            }
+                        }
+/*
+                        // build the list of triangles
+                        // skip first and the last points
+
+                        std::vector <std::list<int >> triangles((unsigned long) (line_count));
+
+                        int in_i = 1;
+
+                        for (int l = 0; l < line_count; l++) {
+                            triangles[l].push_back(in_i);
+                            triangles[l].push_back(in_i + 1);
+                            triangles[l].push_back(in_i + 2);
+                            in_i += 3;
+                        }
+
+                        std::vector <std::list<int>>::iterator i;
+
+                        int tri_num = 0;
+
+                        for (i = triangles.begin(); i != triangles.end(); ++i) {
+                            cout << "triangle[" << tri_num << "] = ";
+                            std::list<int> li = *i;
+
+                            for (std::list<int>::iterator iter = li.begin(); iter != li.end(); ++iter) {
+                                cout << *iter << " ";
+                            }
+                            cout << endl;
+                            tri_num++;
+                        }*/
+
+
+                        /*int p[2];
                         int q[2];
 
                         int r[2];
-                        int s[2];
+                        int s[2];*/
 
-                        /*// create the graph
+                        // create the graph
                         // pick two vertex and create an edge
-                        for (int l = 0; l < num_of_vertex; l++) {
-                            // pick two points
-                            p[0] = shrink_array[l][0];
-                            p[1] = shrink_array[l][1];
-                            q[0] = shrink_array[l + 1][0];
-                            q[1] = shrink_array[l + 1][1];
 
-                            // now compare to all possible edges from point 0
-                            for (int i = 0; i < num_of_vertex; i++) {
-                                // create an edge
-                                r
 
-                            }
-                        }*/
+
 
                     } else {
                         continue;
@@ -325,9 +354,9 @@ void check_edge(const int coord_array[][2]) {
               coord_array[combination[1]][0],coord_array[combination[1]][1], // q
               coord_array[combination[2]][0],coord_array[combination[2]][1]); // r
 
-    pqs = det(coord_array[combination[0]][0],coord_array[combination[0]][1],
-              coord_array[combination[1]][0],coord_array[combination[1]][1],
-              coord_array[combination[3]][0],coord_array[combination[3]][1]);
+    pqs = det(coord_array[combination[0]][0],coord_array[combination[0]][1], // p
+              coord_array[combination[1]][0],coord_array[combination[1]][1], // q
+              coord_array[combination[3]][0],coord_array[combination[3]][1]); // s
 
     srp = det(coord_array[combination[3]][0],coord_array[combination[3]][1],
               coord_array[combination[2]][0],coord_array[combination[2]][1],
