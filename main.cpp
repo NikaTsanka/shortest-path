@@ -13,6 +13,62 @@ using namespace std;
 const int INIT_COLS = 6;
 const int NUM_COLS = 2;
 
+struct point{
+    int x;
+    int y;
+
+};
+
+int orientation(struct point p0,struct point p1,struct point p2)
+{
+    //calculate cross product of (p1-p0)X (p2-p0)
+
+    int x1= p1.x- p0.x;
+    int y1 = p1.y - p0.y;
+    int x2= p2.x- p0.x;
+    int y2 = p2.y - p0.y;
+
+    int determinant = x1*y2 - x2*y1;
+
+    if(determinant==0)
+        return 0;
+
+    if(determinant>0)
+        return 1;
+
+    if(determinant<0)
+        return 2;
+
+}
+
+int onsegment(struct point p0,struct point p1,struct point p2)
+{
+    if(p2.x >= min(p0.x,p1.x)&& p2.x <= max(p0.x,p1.x))
+        return 1;
+
+    return 0;
+}
+
+int dointersect(struct point p1,struct point q1,struct point p2,struct point q2)
+{
+    int o1 = orientation(p1,q1,q2);
+    int o2 = orientation(p1,q1,p2);
+    int o3 = orientation(p2,q2,p1);
+    int o4 = orientation(p2,q2,q1);
+
+    if(o1!=o2&&o3!=o4)  //handles general cases
+        return 1;
+
+    if(o1==0&&o2==0&&o3==0&&o4==0)  //handles special cases when all four points are collinear
+    {
+        if(onsegment(p1,q1,p2)||onsegment(p1,q1,q2))
+            return 1;
+
+    }
+    return 0;
+
+}
+
 bool ends_with(const std::string &, const std::string &);
 
 void split(const string &, char, vector<string> &);
@@ -191,19 +247,53 @@ int main(int argc, char *argv[]) {
                         shrink_array[(line_count * 3) + 1][0] = start_target[1][0];
                         shrink_array[(line_count * 3) + 1][1] = start_target[1][1];
 
-                        for (int i = 0; i < num_of_vertex; i++) {
+                        for (int index = 0; index < num_of_vertex; index++) {
                             for (int j = 0; j < 2; j++) {
-                                printf("shrink_array[%d][%d] = %d\n", i,j, shrink_array[i][j] );
+                                printf("shrink_array[%d][%d] = %d\n", index,j, shrink_array[index][j] );
                             }
                             printf("\n");
                         }
 
+                        bool sEdget = False;
+
 
                         for (int l = 0; l < num_of_vertex; l++) {
                             // 1. check if direct edge exists between start and target
-                            if (l == 0) {
-                                // start vertex are at 0,0 and 0,1
+                            // connect the two and check with all other existing triangle edges
+                            struct point p1, q1, p2, q2;
 
+                            if (l == 0) {
+                                // this is the edge from start to target
+                                p1 = {shrink_array[0][0], shrink_array[0][1]};
+                                q1 = {shrink_array[num_of_vertex-1][0], shrink_array[num_of_vertex-1][1]};
+                                for (int triangle = 1; triangle < (line_count * 3) + 1; triangle++) {
+                                    // 1 to 2 / 2 to 3 / 1 to 3
+                                    if ((triangle % 3) == 0) {
+                                        p2 = {shrink_array[triangle - 2][0], shrink_array[triangle - 2][1]};
+                                        q2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
+                                    } else {
+                                        p2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
+                                        q2 = {shrink_array[triangle + 1][0], shrink_array[triangle + 1][1]};
+                                    }
+                                    // now check
+                                    if (dointersect(p1,q1, p2, q2)) {
+
+                                        //cout << "Yes\n";
+                                        sEdget = False;
+                                        break;
+                                    } else {
+                                        //cout << "No\n";
+                                        sEdget = True;
+                                    }
+                                }
+
+                            } else if(sEdget) {
+                                cout << "There exists a direct edge from start to target\n";
+                                break;
+                            } else {
+
+
+                                cout << "Nope\n";
                             }
                         }
 /*
