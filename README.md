@@ -1,6 +1,6 @@
 # shortest-path-project1
 The aim of this project is to create a program that takes a set of 
-triangle obstacles as input, as well as a start and target point, 
+triangle obstacles as input, as well as a start and target Point, 
 and shows the shortest path between them.  
 It provides a visual feedback by drawing the points, obstacles, 
 and the path on the screen using the xlib interface. The program takes 

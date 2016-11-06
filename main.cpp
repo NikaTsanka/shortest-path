@@ -13,13 +13,13 @@ using namespace std;
 const int INIT_COLS = 6;
 const int NUM_COLS = 2;
 
-struct point{
+struct Point{
     int x;
     int y;
 
 };
 
-int orientation(struct point p0,struct point p1,struct point p2)
+int orientation(struct Point p0,struct Point p1,struct Point p2)
 {
     //calculate cross product of (p1-p0)X (p2-p0)
 
@@ -41,7 +41,7 @@ int orientation(struct point p0,struct point p1,struct point p2)
 
 }
 
-int onsegment(struct point p0,struct point p1,struct point p2)
+int onsegment(struct Point p0,struct Point p1,struct Point p2)
 {
     if(p2.x >= min(p0.x,p1.x)&& p2.x <= max(p0.x,p1.x))
         return 1;
@@ -49,7 +49,7 @@ int onsegment(struct point p0,struct point p1,struct point p2)
     return 0;
 }
 
-int dointersect(struct point p1,struct point q1,struct point p2,struct point q2)
+int dointersect(struct Point p1,struct Point q1,struct Point p2,struct Point q2)
 {
     int o1 = orientation(p1,q1,q2);
     int o2 = orientation(p1,q1,p2);
@@ -77,7 +77,7 @@ string parse_string(std::string);
 
 int det(int, int, int, int, int, int);
 
-void check_edge(const int [][2]);
+bool check_edge(const int coord_array[][2], Point p1, Point q1);
 
 int calc_dist(const int x1, const int y1, const int x2, const int y2);
 
@@ -232,7 +232,7 @@ int main(int argc, char *argv[]) {
                         int shrink_array[num_of_vertex][NUM_COLS];
                         int k = 0;
 
-                        // add start at 0 and target at as last point
+                        // add start at 0 and target at as last Point
 
                         shrink_array[0][0] = start_target[0][0];
                         shrink_array[0][1] = start_target[0][1];
@@ -254,48 +254,77 @@ int main(int argc, char *argv[]) {
                             printf("\n");
                         }
 
-                        bool sEdget = False;
+                        int sEdget = 0;
+                        int iEdgei1;
 
+                        struct Point p1, q1, p2, q2;
 
-                        for (int l = 0; l < num_of_vertex; l++) {
-                            // 1. check if direct edge exists between start and target
-                            // connect the two and check with all other existing triangle edges
-                            struct point p1, q1, p2, q2;
+                        // 1. check if direct edge exists between start and target
+                        // connect the two and check with all other existing triangle edges
+                        // this is the edge from start to target
+                        p1 = {shrink_array[0][0], shrink_array[0][1]};
+                        q1 = {shrink_array[num_of_vertex-1][0], shrink_array[num_of_vertex-1][1]};
+                        for (int triangle = 1; triangle < (line_count * 3) + 1; triangle++) {
+                            // 1 to 2 / 2 to 3 / 1 to 3
+                            if ((triangle % 3) == 0) {
+                                p2 = {shrink_array[triangle - 2][0], shrink_array[triangle - 2][1]};
+                                q2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
+                            } else {
+                                p2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
+                                q2 = {shrink_array[triangle + 1][0], shrink_array[triangle + 1][1]};
+                            }
+                            // now check
+                            if (dointersect(p1, q1, p2, q2)) {
+                                //intersection
+                                sEdget++;
+                            }
+                        }
+                        if (sEdget == 0) {
+                            cout << "There exists a direct edge from start to target\n";
+                        } else {
+                            for (int l = 0; l < num_of_vertex; l++) {
+                                iEdgei1 = 0;
+                                // pick en edge l and l + 1
 
-                            if (l == 0) {
-                                // this is the edge from start to target
-                                p1 = {shrink_array[0][0], shrink_array[0][1]};
-                                q1 = {shrink_array[num_of_vertex-1][0], shrink_array[num_of_vertex-1][1]};
-                                for (int triangle = 1; triangle < (line_count * 3) + 1; triangle++) {
-                                    // 1 to 2 / 2 to 3 / 1 to 3
-                                    if ((triangle % 3) == 0) {
-                                        p2 = {shrink_array[triangle - 2][0], shrink_array[triangle - 2][1]};
-                                        q2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
-                                    } else {
-                                        p2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
-                                        q2 = {shrink_array[triangle + 1][0], shrink_array[triangle + 1][1]};
-                                    }
-                                    // now check
-                                    if (dointersect(p1,q1, p2, q2)) {
+                                p1 = {shrink_array[l][0], shrink_array[l][1]};
 
-                                        //cout << "Yes\n";
-                                        sEdget = False;
-                                        break;
-                                    } else {
-                                        //cout << "No\n";
-                                        sEdget = True;
+                                for (int m = l + 1; m < num_of_vertex; m++) {
+                                    q1 = {shrink_array[m][0], shrink_array[m][1]};
+
+                                    for (int triangle = 1; triangle < (line_count * 3) + 1; triangle++) {
+                                        // 1 to 2 / 2 to 3 / 1 to 3
+                                        if ((triangle % 3) == 0) {
+                                            p2 = {shrink_array[triangle - 2][0], shrink_array[triangle - 2][1]};
+                                            q2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
+                                        } else {
+                                            p2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
+                                            q2 = {shrink_array[triangle + 1][0], shrink_array[triangle + 1][1]};
+                                        }
+                                        // now check
+                                        if (dointersect(p1, q1, p2, q2)) {
+                                            //cout << "Yes\n";
+                                            //iEdgei1++;
+                                            cout << "no edge between " << l << " p1: (" << p1.x << ", " << p1.y << ") "
+                                                    "q1: (" << q1.x << ", " << q1.y << ") and "
+                                                         "p2: (" << p2.x << ", " << p2.y << ") "
+                                                         "q2: (" << q2.x << ", " << q2.y << ") \n";
+                                        } else {
+                                            cout << "edge between " << l << " p1: (" << p1.x << ", " << p1.y << ") "
+                                                    "q1: (" << q1.x << ", " << q1.y << ") and "
+                                                         "p2: (" << p2.x << ", " << p2.y << ") "
+                                                         "q2: (" << q2.x << ", " << q2.y << ") \n";
+                                        }
                                     }
                                 }
 
-                            } else if(sEdget) {
-                                cout << "There exists a direct edge from start to target\n";
-                                break;
-                            } else {
-
-
-                                cout << "Nope\n";
+                                /*if (iEdgei1 == 0) {
+                                    cout << "edge\n";
+                                } else if (iEdgei1 > 0) {
+                                    cout << "no edge\n";
+                                }*/
                             }
                         }
+
 /*
                         // build the list of triangles
                         // skip first and the last points
@@ -365,9 +394,9 @@ int main(int argc, char *argv[]) {
         }
     } else if (argc < 2) {
         cout << "No arguments were passes start manual process\n";
-        // call the window methods
+// call the window methods
 
-        /*----------------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------------------*/
 
         XEvent event;		/* the XEvent declaration !!! */
         KeySym key;		/* a dealie-bob to handle KeyPress Events */
@@ -375,35 +404,35 @@ int main(int argc, char *argv[]) {
 
         init_x();
 
-        /* look for events forever... */
+/* look for events forever... */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
         while(1) {
-            /* get the next event and stuff it into our event variable.
-               Note:  only events we set the mask for are detected!
-            */
+/* get the next event and stuff it into our event variable.
+   Note:  only events we set the mask for are detected!
+*/
             XNextEvent(dis, &event);
 
             if (event.type==Expose && event.xexpose.count==0) {
-                /* the window was exposed redraw it! */
+/* the window was exposed redraw it! */
                 redraw();
             }
             if (event.type==KeyPress&&
                 XLookupString(&event.xkey,text,255,&key,0)==1) {
-                /* use the XLookupString routine to convert the invent
-                   KeyPress data into regular text.  Weird but necessary...
-                */
+/* use the XLookupString routine to convert the invent
+   KeyPress data into regular text.  Weird but necessary...
+*/
                 if (text[0]=='q') {
                     close_x();
                 }
                 printf("You pressed the %c key!\n",text[0]);
             }
             if (event.type==ButtonPress) {
-                /* tell where the mouse Button was Pressed */
+/* tell where the mouse Button was Pressed */
                 int x=event.xbutton.x,
                         y=event.xbutton.y;
 
-                //strcpy(text,"X is FUN!");
+//strcpy(text,"X is FUN!");
                 printf("You pressed a button at (%i,%i)\n",
                        event.xbutton.x,event.xbutton.y);
 
@@ -413,7 +442,7 @@ int main(int argc, char *argv[]) {
         }
 #pragma clang diagnostic pop
 
-        /*-------------------------------------------------------------------------------------------*/
+/*-------------------------------------------------------------------------------------------*/
 
 
     } else {
@@ -423,7 +452,32 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void check_edge(const int coord_array[][2]) {
+bool check_edge(const int coord_array[][2], Point p1, Point q1) {
+
+    /*struct Point p2, q2;
+
+    bool intersection = False;
+
+    for (int triangle = 1; triangle < (sizeof(coord_array)/ sizeof(coord_array[0])) + 1; triangle++) {
+        // 1 to 2 / 2 to 3 / 1 to 3
+        if ((triangle % 3) == 0) {
+            p2 = {coord_array[triangle - 2][0], coord_array[triangle - 2][1]};
+            q2 = {coord_array[triangle][0], coord_array[triangle][1]};
+        } else {
+            p2 = {coord_array[triangle][0], coord_array[triangle][1]};
+            q2 = {coord_array[triangle + 1][0], coord_array[triangle + 1][1]};
+        }
+        // now check
+        if (dointersect(p1,q1, p2, q2)) {
+            //cout << "Yes\n";
+            intzz True;
+        } else {
+            return False;
+        }
+    }*/
+
+
+
 
     /*Just the formula
         If (((det (p, q , r) * det(p q s) ) < 0)
@@ -432,9 +486,9 @@ void check_edge(const int coord_array[][2]) {
 
         Then the edge pq intersects sr*/
 
-    int pqr = 0, pqs = 0, srp = 0, srq = 0;
+//    int pqr = 0, pqs = 0, srp = 0, srq = 0;
 
-    int distpq = 0, distsr = 0;
+//    int distpq = 0, distsr = 0;
 
     // p - 0, q - 1, r - 2, s - 3
     // x - 0, y - y
@@ -456,38 +510,38 @@ void check_edge(const int coord_array[][2]) {
               coord_array[combination[2]][0],coord_array[combination[2]][1],
               coord_array[combination[1]][0],coord_array[combination[1]][1]);*/
 
-    if (((pqr * pqs) < 0) && ((srp * srq) < 0)) {
-        cout << "Intersection\n";
-    } else {
-        cout << "Nope\n";
-        // calc distance from p to q, r to s
-        /*distpq = calc_dist(coord_array[combination[0]][0],coord_array[combination[0]][1],
-                           coord_array[combination[1]][0],coord_array[combination[1]][1]);
+    //if (((pqr * pqs) < 0) && ((srp * srq) < 0)) {
+    //cout << "Intersection\n";
+    //} else {
+    //cout << "Nope\n";
+    // calc distance from p to q, r to s
+    /*distpq = calc_dist(coord_array[combination[0]][0],coord_array[combination[0]][1],
+                       coord_array[combination[1]][0],coord_array[combination[1]][1]);
 
-        distsr = calc_dist(coord_array[combination[2]][0],coord_array[combination[2]][1],
-                           coord_array[combination[3]][0],coord_array[combination[3]][1]);
+    distsr = calc_dist(coord_array[combination[2]][0],coord_array[combination[2]][1],
+                       coord_array[combination[3]][0],coord_array[combination[3]][1]);
 
-        std::string s0 = std::to_string(combination[0]) + " " + std::to_string(combination[1]);
-        std::string s1 = std::to_string(combination[2]) + " " + std::to_string(combination[3]);*/
+    std::string s0 = std::to_string(combination[0]) + " " + std::to_string(combination[1]);
+    std::string s1 = std::to_string(combination[2]) + " " + std::to_string(combination[3]);*/
 
-        /*// add to the graph by index
-        if (std::find(edges.begin(), edges.end(), s0) == edges.end()) {
+    /*// add to the graph by index
+    if (std::find(edges.begin(), edges.end(), s0) == edges.end()) {
 
-            cout << combination[0] << " distpq: " << distpq << " " << combination[1] << "\n";
-            //addEdge(graph, combination[0], distpq, combination[1] );
+        cout << combination[0] << " distpq: " << distpq << " " << combination[1] << "\n";
+        //addEdge(graph, combination[0], distpq, combination[1] );
 
-            edges.push_back(s0);
-        }
-        if (std::find(edges.begin(), edges.end(), s1) == edges.end()) {
-
-            cout << combination[2] << " distsr: " << distsr << " " << combination[3] << "\n";
-            //addEdge(graph, combination[2], distsr, combination[3] );
-
-            edges.push_back(s1);
-        }*/
-
-
+        edges.push_back(s0);
     }
+    if (std::find(edges.begin(), edges.end(), s1) == edges.end()) {
+
+        cout << combination[2] << " distsr: " << distsr << " " << combination[3] << "\n";
+        //addEdge(graph, combination[2], distsr, combination[3] );
+
+        edges.push_back(s1);
+    }*/
+
+
+    //}
 }
 
 int calc_dist(const int x1, const int y1, const int x2, const int y2) {
