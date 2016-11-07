@@ -49,14 +49,14 @@ int onsegment(struct Point p0,struct Point p1,struct Point p2)
     return 0;
 }
 
-int dointersect(struct Point p1,struct Point q1,struct Point p2,struct Point q2)
+bool dointersect(struct Point p1,struct Point q1,struct Point p2,struct Point q2)
 {
     int o1 = orientation(p1,q1,q2);
     int o2 = orientation(p1,q1,p2);
     int o3 = orientation(p2,q2,p1);
     int o4 = orientation(p2,q2,q1);
 
-    if(o1!=o2&&o3!=o4)  //handles general cases
+    /*if(o1!=o2&&o3!=o4)  //handles general cases
         return 1;
 
     if(o1==0&&o2==0&&o3==0&&o4==0)  //handles special cases when all four points are collinear
@@ -65,7 +65,26 @@ int dointersect(struct Point p1,struct Point q1,struct Point p2,struct Point q2)
             return 1;
 
     }
-    return 0;
+    return 0;*/
+
+    // General case
+    if (o1 != o2 && o3 != o4)
+        return true;
+
+    // Special Cases
+    // p1, q1 and p2 are colinear and p2 lies on segment p1q1
+    if (o1 == 0 && onsegment(p1, p2, q1)) return true;
+
+    //  p1, q1 and "q2" are colinear and q2 lies on segment p1q1
+    if (o2 == 0 && onsegment(p1, q2, q1)) return true;
+
+    // p2, q2 and p1 are colinear and p1 lies on segment p2q2
+    if (o3 == 0 && onsegment(p2, p1, q2)) return true;
+
+    // p2, q2 and q1 are colinear and q1 lies on segment p2q2
+    if (o4 == 0 && onsegment(p2, q1, q2)) return true;
+
+    return false; // Doesn't fall in any of the above cases
 
 }
 
@@ -77,7 +96,7 @@ string parse_string(std::string);
 
 int det(int, int, int, int, int, int);
 
-bool check_edge(const int coord_array[][2], Point p1, Point q1);
+bool check_intersection(Point p1, Point q1, Point p2, Point q2);
 
 int calc_dist(const int x1, const int y1, const int x2, const int y2);
 
@@ -301,15 +320,15 @@ int main(int argc, char *argv[]) {
                                             q2 = {shrink_array[triangle + 1][0], shrink_array[triangle + 1][1]};
                                         }
                                         // now check
-                                        if (dointersect(p1, q1, p2, q2)) {
+                                        if (check_intersection(p1, q1, p2, q2)) {
                                             //cout << "Yes\n";
                                             //iEdgei1++;
-                                            cout << "no edge between " << l << " p1: (" << p1.x << ", " << p1.y << ") "
+                                            cout << "intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
                                                     "q1: (" << q1.x << ", " << q1.y << ") and "
                                                          "p2: (" << p2.x << ", " << p2.y << ") "
                                                          "q2: (" << q2.x << ", " << q2.y << ") \n";
                                         } else {
-                                            cout << "edge between " << l << " p1: (" << p1.x << ", " << p1.y << ") "
+                                            cout << "no intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
                                                     "q1: (" << q1.x << ", " << q1.y << ") and "
                                                          "p2: (" << p2.x << ", " << p2.y << ") "
                                                          "q2: (" << q2.x << ", " << q2.y << ") \n";
@@ -452,96 +471,48 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-bool check_edge(const int coord_array[][2], Point p1, Point q1) {
+bool check_intersection(struct Point p1, struct Point q1, struct Point p2, struct Point q2) {
+    /*Determinant formula
+      If (((det (p, q , r) * det(p q s) ) < 0)
+      And ((Det (s r p) * det ( s r q))< 0)
+      Then the edge pq intersects sr
+      */
 
-    /*struct Point p2, q2;
-
-    bool intersection = False;
-
-    for (int triangle = 1; triangle < (sizeof(coord_array)/ sizeof(coord_array[0])) + 1; triangle++) {
-        // 1 to 2 / 2 to 3 / 1 to 3
-        if ((triangle % 3) == 0) {
-            p2 = {coord_array[triangle - 2][0], coord_array[triangle - 2][1]};
-            q2 = {coord_array[triangle][0], coord_array[triangle][1]};
-        } else {
-            p2 = {coord_array[triangle][0], coord_array[triangle][1]};
-            q2 = {coord_array[triangle + 1][0], coord_array[triangle + 1][1]};
-        }
-        // now check
-        if (dointersect(p1,q1, p2, q2)) {
-            //cout << "Yes\n";
-            intzz True;
-        } else {
-            return False;
-        }
-    }*/
-
-
-
-
-    /*Just the formula
-        If (((det (p, q , r) * det(p q s) ) < 0)
-            And
-     ((Det (s r p) * det ( s r q))< 0)
-
-        Then the edge pq intersects sr*/
-
-//    int pqr = 0, pqs = 0, srp = 0, srq = 0;
+    int pqr = 0, pqs = 0, srp = 0, srq = 0;
 
 //    int distpq = 0, distsr = 0;
 
-    // p - 0, q - 1, r - 2, s - 3
-    // x - 0, y - y
+    // p1 = p, q1 = q, r = p2, s = q2
 
+    pqr = det(p1.x, p1.y, // p
+              q1.x, q1.y, // q
+              p2.x, p2.y); // r
 
-    /*pqr = det(coord_array[combination[0]][0],coord_array[combination[0]][1], // p
-              coord_array[combination[1]][0],coord_array[combination[1]][1], // q
-              coord_array[combination[2]][0],coord_array[combination[2]][1]); // r
+    pqs = det(p1.x, p1.y, // p
+              q1.x, q1.y, // q
+              q2.x, q2.y); // s
 
-    pqs = det(coord_array[combination[0]][0],coord_array[combination[0]][1], // p
-              coord_array[combination[1]][0],coord_array[combination[1]][1], // q
-              coord_array[combination[3]][0],coord_array[combination[3]][1]); // s
+    srp = det(q2.x, q2.y, //s
+              p2.x, p2.y, //r
+              p1.x, p1.y); // p
 
-    srp = det(coord_array[combination[3]][0],coord_array[combination[3]][1],
-              coord_array[combination[2]][0],coord_array[combination[2]][1],
-              coord_array[combination[0]][0],coord_array[combination[0]][1]);
+    srq = det(q2.x, q2.y, //s
+              p2.x, p2.y, //r
+              q1.x, q1.y); //q
 
-    srq = det(coord_array[combination[3]][0],coord_array[combination[3]][1],
-              coord_array[combination[2]][0],coord_array[combination[2]][1],
-              coord_array[combination[1]][0],coord_array[combination[1]][1]);*/
-
-    //if (((pqr * pqs) < 0) && ((srp * srq) < 0)) {
-    //cout << "Intersection\n";
-    //} else {
-    //cout << "Nope\n";
+    if (((pqr * pqs) < 0) && ((srp * srq) < 0)) {
+        //cout << "Intersection\n";
+        return True;
+    } else {
+        //cout << "Nope\n";
+        return False;
+    }
     // calc distance from p to q, r to s
     /*distpq = calc_dist(coord_array[combination[0]][0],coord_array[combination[0]][1],
                        coord_array[combination[1]][0],coord_array[combination[1]][1]);
 
     distsr = calc_dist(coord_array[combination[2]][0],coord_array[combination[2]][1],
-                       coord_array[combination[3]][0],coord_array[combination[3]][1]);
-
-    std::string s0 = std::to_string(combination[0]) + " " + std::to_string(combination[1]);
-    std::string s1 = std::to_string(combination[2]) + " " + std::to_string(combination[3]);*/
-
-    /*// add to the graph by index
-    if (std::find(edges.begin(), edges.end(), s0) == edges.end()) {
-
-        cout << combination[0] << " distpq: " << distpq << " " << combination[1] << "\n";
-        //addEdge(graph, combination[0], distpq, combination[1] );
-
-        edges.push_back(s0);
-    }
-    if (std::find(edges.begin(), edges.end(), s1) == edges.end()) {
-
-        cout << combination[2] << " distsr: " << distsr << " " << combination[3] << "\n";
-        //addEdge(graph, combination[2], distsr, combination[3] );
-
-        edges.push_back(s1);
-    }*/
-
-
-    //}
+                       coord_array[combination[3]][0],coord_array[combination[3]][1]);*/
 }
 
 int calc_dist(const int x1, const int y1, const int x2, const int y2) {
