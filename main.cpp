@@ -19,75 +19,6 @@ struct Point{
 
 };
 
-int orientation(struct Point p0,struct Point p1,struct Point p2)
-{
-    //calculate cross product of (p1-p0)X (p2-p0)
-
-    int x1= p1.x- p0.x;
-    int y1 = p1.y - p0.y;
-    int x2= p2.x- p0.x;
-    int y2 = p2.y - p0.y;
-
-    int determinant = x1*y2 - x2*y1;
-
-    if(determinant==0)
-        return 0;
-
-    if(determinant>0)
-        return 1;
-
-    if(determinant<0)
-        return 2;
-
-}
-
-int onsegment(struct Point p0,struct Point p1,struct Point p2)
-{
-    if(p2.x >= min(p0.x,p1.x)&& p2.x <= max(p0.x,p1.x))
-        return 1;
-
-    return 0;
-}
-
-bool dointersect(struct Point p1,struct Point q1,struct Point p2,struct Point q2)
-{
-    int o1 = orientation(p1,q1,q2);
-    int o2 = orientation(p1,q1,p2);
-    int o3 = orientation(p2,q2,p1);
-    int o4 = orientation(p2,q2,q1);
-
-    /*if(o1!=o2&&o3!=o4)  //handles general cases
-        return 1;
-
-    if(o1==0&&o2==0&&o3==0&&o4==0)  //handles special cases when all four points are collinear
-    {
-        if(onsegment(p1,q1,p2)||onsegment(p1,q1,q2))
-            return 1;
-
-    }
-    return 0;*/
-
-    // General case
-    if (o1 != o2 && o3 != o4)
-        return true;
-
-    // Special Cases
-    // p1, q1 and p2 are colinear and p2 lies on segment p1q1
-    if (o1 == 0 && onsegment(p1, p2, q1)) return true;
-
-    //  p1, q1 and "q2" are colinear and q2 lies on segment p1q1
-    if (o2 == 0 && onsegment(p1, q2, q1)) return true;
-
-    // p2, q2 and p1 are colinear and p1 lies on segment p2q2
-    if (o3 == 0 && onsegment(p2, p1, q2)) return true;
-
-    // p2, q2 and q1 are colinear and q1 lies on segment p2q2
-    if (o4 == 0 && onsegment(p2, q1, q2)) return true;
-
-    return false; // Doesn't fall in any of the above cases
-
-}
-
 bool ends_with(const std::string &, const std::string &);
 
 void split(const string &, char, vector<string> &);
@@ -275,6 +206,7 @@ int main(int argc, char *argv[]) {
 
                         int sEdget = 0;
                         int iEdgei1;
+                        int distpq = 0;
 
                         struct Point p1, q1, p2, q2;
 
@@ -293,7 +225,7 @@ int main(int argc, char *argv[]) {
                                 q2 = {shrink_array[triangle + 1][0], shrink_array[triangle + 1][1]};
                             }
                             // now check
-                            if (dointersect(p1, q1, p2, q2)) {
+                            if (check_intersection(p1, q1, p2, q2)) {
                                 //intersection
                                 sEdget++;
                             }
@@ -302,14 +234,12 @@ int main(int argc, char *argv[]) {
                             cout << "There exists a direct edge from start to target\n";
                         } else {
                             for (int l = 0; l < num_of_vertex; l++) {
-                                iEdgei1 = 0;
+
                                 // pick en edge l and l + 1
-
                                 p1 = {shrink_array[l][0], shrink_array[l][1]};
-
                                 for (int m = l + 1; m < num_of_vertex; m++) {
+                                    iEdgei1 = 0;
                                     q1 = {shrink_array[m][0], shrink_array[m][1]};
-
                                     for (int triangle = 1; triangle < (line_count * 3) + 1; triangle++) {
                                         // 1 to 2 / 2 to 3 / 1 to 3
                                         if ((triangle % 3) == 0) {
@@ -322,69 +252,29 @@ int main(int argc, char *argv[]) {
                                         // now check
                                         if (check_intersection(p1, q1, p2, q2)) {
                                             //cout << "Yes\n";
-                                            //iEdgei1++;
-                                            cout << "intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
+                                            iEdgei1++;
+                                            /*cout << "intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
                                                     "q1: (" << q1.x << ", " << q1.y << ") and "
                                                          "p2: (" << p2.x << ", " << p2.y << ") "
-                                                         "q2: (" << q2.x << ", " << q2.y << ") \n";
+                                                         "q2: (" << q2.x << ", " << q2.y << ") \n";*/
                                         } else {
-                                            cout << "no intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
+                                            /*cout << "no intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
                                                     "q1: (" << q1.x << ", " << q1.y << ") and "
                                                          "p2: (" << p2.x << ", " << p2.y << ") "
-                                                         "q2: (" << q2.x << ", " << q2.y << ") \n";
+                                                         "q2: (" << q2.x << ", " << q2.y << ") \n";*/
                                         }
                                     }
+                                    if (iEdgei1 == 0) {
+                                        // calc distance from p to q
+                                        distpq = calc_dist(p1.x, p1.y, q1.x, q1.y);
+                                        cout << "edge from " << l << " to " << m << ". distance = " << distpq << endl;
+                                    } else if (iEdgei1 > 0) {
+                                        //cout << "no edge from " << l << " to " << m << endl;
+                                    }
                                 }
-
-                                /*if (iEdgei1 == 0) {
-                                    cout << "edge\n";
-                                } else if (iEdgei1 > 0) {
-                                    cout << "no edge\n";
-                                }*/
+                                cout << "\n";
                             }
                         }
-
-/*
-                        // build the list of triangles
-                        // skip first and the last points
-
-                        std::vector <std::list<int >> triangles((unsigned long) (line_count));
-
-                        int in_i = 1;
-
-                        for (int l = 0; l < line_count; l++) {
-                            triangles[l].push_back(in_i);
-                            triangles[l].push_back(in_i + 1);
-                            triangles[l].push_back(in_i + 2);
-                            in_i += 3;
-                        }
-
-                        std::vector <std::list<int>>::iterator i;
-
-                        int tri_num = 0;
-
-                        for (i = triangles.begin(); i != triangles.end(); ++i) {
-                            cout << "triangle[" << tri_num << "] = ";
-                            std::list<int> li = *i;
-
-                            for (std::list<int>::iterator iter = li.begin(); iter != li.end(); ++iter) {
-                                cout << *iter << " ";
-                            }
-                            cout << endl;
-                            tri_num++;
-                        }*/
-
-
-                        /*int p[2];
-                        int q[2];
-
-                        int r[2];
-                        int s[2];*/
-
-                        // create the graph
-                        // pick two vertex and create an edge
-
-
 
 
                     } else {
@@ -471,17 +361,14 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-bool check_intersection(struct Point p1, struct Point q1, struct Point p2, struct Point q2) {
+bool check_intersection(Point p1, Point q1, Point p2, Point q2) {
     /*Determinant formula
       If (((det (p, q , r) * det(p q s) ) < 0)
       And ((Det (s r p) * det ( s r q))< 0)
       Then the edge pq intersects sr
-      */
+     */
 
     int pqr = 0, pqs = 0, srp = 0, srq = 0;
-
-//    int distpq = 0, distsr = 0;
-
     // p1 = p, q1 = q, r = p2, s = q2
 
     pqr = det(p1.x, p1.y, // p
@@ -507,12 +394,6 @@ bool check_intersection(struct Point p1, struct Point q1, struct Point p2, struc
         //cout << "Nope\n";
         return False;
     }
-    // calc distance from p to q, r to s
-    /*distpq = calc_dist(coord_array[combination[0]][0],coord_array[combination[0]][1],
-                       coord_array[combination[1]][0],coord_array[combination[1]][1]);
-
-    distsr = calc_dist(coord_array[combination[2]][0],coord_array[combination[2]][1],
-                       coord_array[combination[3]][0],coord_array[combination[3]][1]);*/
 }
 
 int calc_dist(const int x1, const int y1, const int x2, const int y2) {
