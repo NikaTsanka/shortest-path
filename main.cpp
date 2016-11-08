@@ -7,12 +7,9 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
-#include <algorithm>
-#include <limits>
 #include <queue>
 
 using namespace std;
-
 
 typedef vector<vector<pair<int,float> > > Graph;
 class Comparator
@@ -295,6 +292,7 @@ int main(int argc, char *argv[]) {
                         }
                         if (edge_start_to_target == 0) {
                             cout << "There exists a direct edge from start to target\n";
+                            XDrawLine(dis,win,gc, shrink_array[0][0],shrink_array[0][1],shrink_array[num_of_vertex-1][0],shrink_array[num_of_vertex-1][1]);
                         } else {
                             for (int l = 0; l < num_of_vertex; l++) {
 
@@ -339,14 +337,19 @@ int main(int argc, char *argv[]) {
                                 }
                                 //cout << "\n";
                             }
+                            vector<int> path;
+                            dijkstra(g,0,num_of_vertex-1,path);
+                            //int index[path.size() - 1];
+                            for(int i = (int) (path.size() - 1); i >= 0; i--) {
+                                cout<< path[i] << "->" << path[i - 1];
+                                if (i == 0) {
+                                    continue;
+                                }
+                                cout << "\ni: " << i << " i - 1: " << i - 1 << endl;
+                                XDrawLine(dis,win,gc, shrink_array[path[i]][0],shrink_array[path[i]][1],shrink_array[path[i - 1]][0],shrink_array[path[i - 1]][1]);
+                            }
                         }
 
-                        vector<int> path;
-                        dijkstra(g,0,num_of_vertex-1,path);
-                        for(int i= (int) (path.size() - 1); i >= 0; i--)
-                            //cout<<path[i]<<"->";
-                            XDrawLine(dis,win,gc, shrink_array[path[i]][0],shrink_array[path[i]][1],
-                                      shrink_array[path[i - 1]][0],shrink_array[path[i - 1]][1]);
                     } else {
                         continue;
                     }
@@ -546,4 +549,3 @@ void close_x() {
 void redraw() {
     XClearWindow(dis, win);
 }
-
