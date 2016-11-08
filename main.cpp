@@ -7,17 +7,78 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
+#include <algorithm>
+#include <limits>
+#include <queue>
 
 using namespace std;
+
+
+typedef vector<vector<pair<int,float> > > Graph;
+class Comparator
+{
+public:
+    int operator() ( const pair<int,float>& p1, const pair<int,float> &p2)
+    {
+        return p1.second>p2.second;
+    }
+};
+
+void dijkstra(const Graph  &G,const int &source,const int &destination,vector<int> &path)
+{
+    vector<float> d(G.size());
+    vector<int> parent(G.size());
+    for(unsigned int i = 0 ;i < G.size(); i++)
+    {
+        d[i] = std::numeric_limits<float>::max();
+        parent[i] = -1;
+    }
+    priority_queue<pair<int,float>, vector<pair<int,float> >, Comparator> Q;
+    d[source] = 0.0f;
+    Q.push(make_pair(source,d[source]));
+    while(!Q.empty())
+    {
+        int u = Q.top().first;
+        if(u==destination) break;
+        Q.pop();
+        for(unsigned int i=0; i < G[u].size(); i++)
+        {
+            int v= G[u][i].first;
+            float w = G[u][i].second;
+            if(d[v] > d[u]+w)
+            {
+                d[v] = d[u]+w;
+                parent[v] = u;
+                Q.push(make_pair(v,d[v]));
+            }
+        }
+    }
+    path.clear();
+    int p = destination;
+    path.push_back(destination);
+    while(p!=source)
+    {
+        p = parent[p];
+        path.push_back(p);
+    }
+}
+
+
+
+
 
 const int INIT_COLS = 6;
 const int NUM_COLS = 2;
 
+
+
+
 struct Point{
     int x;
     int y;
-
 };
+
+
 
 bool ends_with(const std::string &, const std::string &);
 
@@ -197,18 +258,20 @@ int main(int argc, char *argv[]) {
                         shrink_array[(line_count * 3) + 1][0] = start_target[1][0];
                         shrink_array[(line_count * 3) + 1][1] = start_target[1][1];
 
-                        for (int index = 0; index < num_of_vertex; index++) {
+                        /*for (int index = 0; index < num_of_vertex; index++) {
                             for (int j = 0; j < 2; j++) {
                                 printf("shrink_array[%d][%d] = %d\n", index,j, shrink_array[index][j] );
                             }
                             printf("\n");
-                        }
+                        }*/
 
-                        int sEdget = 0;
-                        int iEdgei1;
+                        int edge_start_to_target = 0;
+                        int edge_i_to_i_plus_one;
                         int distpq = 0;
 
                         struct Point p1, q1, p2, q2;
+                        Graph g;
+                        g.resize( (num_of_vertex));
 
                         // 1. check if direct edge exists between start and target
                         // connect the two and check with all other existing triangle edges
@@ -227,10 +290,10 @@ int main(int argc, char *argv[]) {
                             // now check
                             if (check_intersection(p1, q1, p2, q2)) {
                                 //intersection
-                                sEdget++;
+                                edge_start_to_target++;
                             }
                         }
-                        if (sEdget == 0) {
+                        if (edge_start_to_target == 0) {
                             cout << "There exists a direct edge from start to target\n";
                         } else {
                             for (int l = 0; l < num_of_vertex; l++) {
@@ -238,7 +301,7 @@ int main(int argc, char *argv[]) {
                                 // pick en edge l and l + 1
                                 p1 = {shrink_array[l][0], shrink_array[l][1]};
                                 for (int m = l + 1; m < num_of_vertex; m++) {
-                                    iEdgei1 = 0;
+                                    edge_i_to_i_plus_one = 0;
                                     q1 = {shrink_array[m][0], shrink_array[m][1]};
                                     for (int triangle = 1; triangle < (line_count * 3) + 1; triangle++) {
                                         // 1 to 2 / 2 to 3 / 1 to 3
@@ -252,7 +315,7 @@ int main(int argc, char *argv[]) {
                                         // now check
                                         if (check_intersection(p1, q1, p2, q2)) {
                                             //cout << "Yes\n";
-                                            iEdgei1++;
+                                            edge_i_to_i_plus_one++;
                                             /*cout << "intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
                                                     "q1: (" << q1.x << ", " << q1.y << ") and "
                                                          "p2: (" << p2.x << ", " << p2.y << ") "
@@ -264,23 +327,30 @@ int main(int argc, char *argv[]) {
                                                          "q2: (" << q2.x << ", " << q2.y << ") \n";*/
                                         }
                                     }
-                                    if (iEdgei1 == 0) {
+                                    if (edge_i_to_i_plus_one == 0) {
                                         // calc distance from p to q
                                         distpq = calc_dist(p1.x, p1.y, q1.x, q1.y);
-                                        cout << "edge from " << l << " to " << m << ". distance = " << distpq << endl;
-                                    } else if (iEdgei1 > 0) {
+                                        //cout << "edge from " << l << " to " << m << ". distance = " << distpq << endl;
+                                        g[l].push_back(make_pair(m, distpq));
+                                        g[m].push_back(make_pair(l, distpq));
+                                    } else if (edge_i_to_i_plus_one > 0) {
                                         //cout << "no edge from " << l << " to " << m << endl;
                                     }
                                 }
-                                cout << "\n";
+                                //cout << "\n";
                             }
                         }
 
-
+                        vector<int> path;
+                        dijkstra(g,0,num_of_vertex-1,path);
+                        for(int i= (int) (path.size() - 1); i >= 0; i--)
+                            //cout<<path[i]<<"->";
+                            XDrawLine(dis,win,gc, shrink_array[path[i]][0],shrink_array[path[i]][1],
+                                      shrink_array[path[i - 1]][0],shrink_array[path[i - 1]][1]);
                     } else {
                         continue;
                     }
-                    printf("You pressed a button at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
+                    printf("\nYou pressed a button at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
 
                     XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
                     XDrawPoint(dis, win, gc, x, y);
