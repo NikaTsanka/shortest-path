@@ -107,7 +107,7 @@ void close_x();
 
 void redraw();
 
-void drawing_board(int pInt[][INIT_COLS], int);
+void drawing_board(int [][NUM_COLS], int);
 
 int main(int argc, char *argv[]) {
     if (argc == 2 && ends_with(argv[1], ".txt")) {
@@ -143,12 +143,35 @@ int main(int argc, char *argv[]) {
                     line_count++;
                 }
             }
+
+            const int num_of_vertex = (line_count * 3) + 2;
+
+            // first index the matrix for easy access
+            int shrink_array[num_of_vertex][NUM_COLS];
+            int k = 0;
+            // leave out first and the last elements
+            for (int i = 1; i < line_count * 3;) {
+                for (int j = 0; j < INIT_COLS; j += 2) {
+                    shrink_array[i][0] = coordinates[k][j];
+                    shrink_array[i][1] = coordinates[k][j + 1];
+                    i++;
+                }
+                k++;
+            }
+
+            /*for (int index = 0; index < num_of_vertex; index++) {
+                for (int j = 0; j < 2; j++) {
+                    printf("shrink_array[%d][%d] = %d\n", index,j, shrink_array[index][j] );
+                }
+                printf("\n");
+            }*/
+
             cout << "(" << argv[1] << ") file was passed.\n" << endl;
             split_vector.clear();
             input_file.close();
 
             // start the x-server with the read coordinates
-            drawing_board(coordinates, line_count);
+            drawing_board(shrink_array, line_count);
 
         } else {
             cout << "Couldn't open the specified file\n";
@@ -168,10 +191,19 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void drawing_board(int coordinates[][INIT_COLS], int line_count) {
+void drawing_board(int shrink_array[][NUM_COLS], int line_count) {
 
     // start and target points
     int start_target[NUM_COLS][NUM_COLS];
+
+    const int num_of_vertex = (line_count * 3) + 2;
+
+    for (int index = 0; index < num_of_vertex; index++) {
+        for (int j = 0; j < 2; j++) {
+            printf("shrink_array[%d][%d] = %d\n", index,j, shrink_array[index][j] );
+        }
+        printf("\n");
+    }
 
     /*----------------------------------------------------------------------------------------*/
 
@@ -192,192 +224,201 @@ void drawing_board(int coordinates[][INIT_COLS], int line_count) {
         */
         XNextEvent(dis, &event);
 
-        if (event.type==Expose && event.xexpose.count==0) {
-            /* the window was exposed redraw it! */
-            redraw();
-        }
-        if (event.type==KeyPress&&
-            XLookupString(&event.xkey,text,255,&key,0)==1) {
-            /* use the XLookupString routine to convert the invent
-               KeyPress data into regular text.  Weird but necessary...
-            */
-            if (text[0]=='q' || text[0]=='Q') {
-                close_x();
-            }
-            printf("You pressed the %c key!\n",text[0]);
-        }
+        switch (event.type) {
+            case Expose:
+                if (event.type==Expose && event.xexpose.count==0) {
+                    /* the window was exposed redraw it! */
+                    redraw();
+                    if (line_count > 0) {
+                        /*for (int index = 0; index < num_of_vertex; index++) {
+                                for (int j = 0; j < 2; j++) {
+                                    printf("shrink_array[%d][%d] = %d\n", index,j, shrink_array[index][j] );
+                                }
+                                printf("\n");
+                            }*/
+                        // draw triangles
+                        for (int i = 1; i < num_of_vertex - 2; i+=3) {
+                            // 3 lines and points
+                            cout << i << " \n";
+                            //printf("line - i=%d: %d,%d to %d,%d\n", i, shrink_array[i][0],shrink_array[i][1], shrink_array[i + 1][0],shrink_array[i + 1][1] );
+                            XDrawLine(dis,win,gc, shrink_array[i][0],shrink_array[i][1], shrink_array[i + 1][0],shrink_array[i + 1][1]);
+                            XDrawLine(dis,win,gc, shrink_array[i + 1][0],shrink_array[i + 1][1], shrink_array[i + 2][0],shrink_array[i + 2][1]);
 
-        if (line_count != 0) {
-            // draw triangles
-            for (int i = 0; i < line_count; i++) {
-                // 3 lines and points
-                XDrawLine(dis,win,gc, coordinates[i][0],coordinates[i][1], coordinates[i][2],coordinates[i][3]);
-                XDrawLine(dis,win,gc, coordinates[i][2],coordinates[i][3], coordinates[i][4],coordinates[i][5]);
-                XDrawLine(dis,win,gc, coordinates[i][4],coordinates[i][5], coordinates[i][0],coordinates[i][1]);
-            }
-        }
-        // Now get the two points
-        if (event.type == ButtonPress) {
+                            XDrawLine(dis,win,gc, shrink_array[i][0],shrink_array[i][1], shrink_array[i +  2][0],shrink_array[i + 2][1]);
+                            /*XDrawLine(dis,win,gc, coordinates[i][2],coordinates[i][3], coordinates[i][4],coordinates[i][5]);
+                            XDrawLine(dis,win,gc, coordinates[i][4],coordinates[i][5], coordinates[i][0],coordinates[i][1]);*/
 
-
-            num_of_clicks++;
-
-            //tell where the mouse Button was Pressed
-            int x = event.xbutton.x;
-            int y = event.xbutton.y;
-
-            if (line_count == 0) {
-                if (event.xbutton.button == Button1) {
-                    //cout << "Left click\n";
-                    printf("\nLeft click at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
-
-                } else if (event.xbutton.button == Button3) {
-                    //cout << "Right click\n";
-                    printf("\nRight click at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
-
-                }
-            }
-
-            if (num_of_clicks == 1) {
-                strcpy(text,"Start");
-                start_target[0][0] = x;
-                start_target[0][1] = y;
-            } else if (num_of_clicks == 2) {
-                strcpy(text,"Target");
-                start_target[1][0] = x;
-                start_target[1][1] = y;
-                // now that we have everything.
-                // we make connections and check for valid edges
-                const int num_of_vertex = (line_count * 3) + 2;
-
-                // first index the matrix for easy access
-                int shrink_array[num_of_vertex][NUM_COLS];
-                int k = 0;
-
-                // add start at 0 and target at as last Point
-
-                shrink_array[0][0] = start_target[0][0];
-                shrink_array[0][1] = start_target[0][1];
-                for (int i = 1; i < line_count * 3;) {
-                    for (int j = 0; j < INIT_COLS; j += 2) {
-                        shrink_array[i][0] = coordinates[k][j];
-                        shrink_array[i][1] = coordinates[k][j + 1];
-                        i++;
+                        }
                     }
-                    k++;
                 }
-                shrink_array[(line_count * 3) + 1][0] = start_target[1][0];
-                shrink_array[(line_count * 3) + 1][1] = start_target[1][1];
-
-                /*for (int index = 0; index < num_of_vertex; index++) {
-                    for (int j = 0; j < 2; j++) {
-                        printf("shrink_array[%d][%d] = %d\n", index,j, shrink_array[index][j] );
+                break;
+            case KeyPress:
+                if (event.type==KeyPress&&
+                    XLookupString(&event.xkey,text,255,&key,0)==1) {
+                    /* use the XLookupString routine to convert the invent
+                       KeyPress data into regular text.  Weird but necessary...
+                    */
+                    if (text[0]=='q' || text[0]=='Q') {
+                        close_x();
                     }
-                    printf("\n");
-                }*/
+                    printf("You pressed the %c key!\n",text[0]);
+                }
+            case ButtonPress:
+                // Now get the two points
+                if (event.type == ButtonPress) {
 
-                int edge_start_to_target = 0;
-                int edge_i_to_i_plus_one;
-                int distpq = 0;
 
-                struct Point p1, q1, p2, q2;
-                Graph g;
-                g.resize((unsigned long) (num_of_vertex));
+                    num_of_clicks++;
 
-                // 1. check if direct edge exists between start and target
-                // connect the two and check with all other existing triangle edges
-                // this is the edge from start to target
-                p1 = {shrink_array[0][0], shrink_array[0][1]};
-                q1 = {shrink_array[num_of_vertex-1][0], shrink_array[num_of_vertex-1][1]};
-                for (int triangle = 1; triangle < (line_count * 3) + 1; triangle++) {
-                    // 1 to 2 / 2 to 3 / 1 to 3
-                    if ((triangle % 3) == 0) {
-                        p2 = {shrink_array[triangle - 2][0], shrink_array[triangle - 2][1]};
-                        q2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
+                    //tell where the mouse Button was Pressed
+                    int x = event.xbutton.x;
+                    int y = event.xbutton.y;
+
+                    if (line_count == 0) {
+                        if (event.xbutton.button == Button1) {
+                            //cout << "Left click\n";
+                            printf("\nLeft click at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
+
+                        } else if (event.xbutton.button == Button3) {
+                            //cout << "Right click\n";
+                            printf("\nRight click at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
+
+                        }
+                    }
+
+                    if (num_of_clicks == 1) {
+                        strcpy(text,"Start");
+                        start_target[0][0] = x;
+                        start_target[0][1] = y;
+                    } else if (num_of_clicks == 2) {
+                        strcpy(text,"Target");
+                        start_target[1][0] = x;
+                        start_target[1][1] = y;
+                        // now that we have everything.
+                        // we make connections and check for valid edges
+                        // add start at 0 and target at as last Point
+                        shrink_array[0][0] = start_target[0][0];
+                        shrink_array[0][1] = start_target[0][1];
+                        shrink_array[(line_count * 3) + 1][0] = start_target[1][0];
+                        shrink_array[(line_count * 3) + 1][1] = start_target[1][1];
+
+                        /*for (int index = 0; index < num_of_vertex; index++) {
+                            for (int j = 0; j < 2; j++) {
+                                printf("shrink_array[%d][%d] = %d\n", index,j, shrink_array[index][j] );
+                            }
+                            printf("\n");
+                        }*/
+
+                        int edge_start_to_target = 0;
+                        int edge_i_to_i_plus_one;
+                        int distpq = 0;
+
+                        struct Point p1, q1, p2, q2;
+                        Graph g;
+                        g.resize((unsigned long) (num_of_vertex));
+
+                        // 1. check if direct edge exists between start and target
+                        // connect the two and check with all other existing triangle edges
+                        // this is the edge from start to target
+                        p1 = {shrink_array[0][0], shrink_array[0][1]};
+                        q1 = {shrink_array[num_of_vertex-1][0], shrink_array[num_of_vertex-1][1]};
+                        for (int triangle = 1; triangle < (line_count * 3) + 1; triangle++) {
+                            // 1 to 2 / 2 to 3 / 1 to 3
+                            if ((triangle % 3) == 0) {
+                                p2 = {shrink_array[triangle - 2][0], shrink_array[triangle - 2][1]};
+                                q2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
+                            } else {
+                                p2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
+                                q2 = {shrink_array[triangle + 1][0], shrink_array[triangle + 1][1]};
+                            }
+                            // now check
+                            if (check_intersection(p1, q1, p2, q2)) {
+                                //intersection
+                                edge_start_to_target++;
+                            }
+                        }
+                        if (edge_start_to_target == 0) {
+                            cout << "There exists a direct edge from start to target\n";
+                            XDrawLine(dis,win,gc, shrink_array[0][0],shrink_array[0][1],shrink_array[num_of_vertex-1][0],shrink_array[num_of_vertex-1][1]);
+                        } else {
+                            for (int l = 0; l < num_of_vertex; l++) {
+
+                                // pick en edge l and l + 1
+                                p1 = {shrink_array[l][0], shrink_array[l][1]};
+                                for (int m = l + 1; m < num_of_vertex; m++) {
+                                    edge_i_to_i_plus_one = 0;
+                                    q1 = {shrink_array[m][0], shrink_array[m][1]};
+                                    for (int triangle = 1; triangle < (line_count * 3) + 1; triangle++) {
+                                        // 1 to 2 / 2 to 3 / 1 to 3
+                                        if ((triangle % 3) == 0) {
+                                            p2 = {shrink_array[triangle - 2][0], shrink_array[triangle - 2][1]};
+                                            q2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
+                                        } else {
+                                            p2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
+                                            q2 = {shrink_array[triangle + 1][0], shrink_array[triangle + 1][1]};
+                                        }
+                                        // now check
+                                        if (check_intersection(p1, q1, p2, q2)) {
+                                            //cout << "Yes\n";
+                                            edge_i_to_i_plus_one++;
+                                            /*cout << "intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
+                                                    "q1: (" << q1.x << ", " << q1.y << ") and "
+                                                         "p2: (" << p2.x << ", " << p2.y << ") "
+                                                         "q2: (" << q2.x << ", " << q2.y << ") \n";*/
+                                        } else {
+                                            /*cout << "no intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
+                                                    "q1: (" << q1.x << ", " << q1.y << ") and "
+                                                         "p2: (" << p2.x << ", " << p2.y << ") "
+                                                         "q2: (" << q2.x << ", " << q2.y << ") \n";*/
+                                        }
+                                    }
+                                    if (edge_i_to_i_plus_one == 0) {
+                                        // calc distance from p to q
+                                        distpq = calc_dist(p1.x, p1.y, q1.x, q1.y);
+                                        //cout << "edge from " << l << " to " << m << ". distance = " << distpq << endl;
+                                        g[l].push_back(make_pair(m, distpq));
+                                        g[m].push_back(make_pair(l, distpq));
+                                    } else if (edge_i_to_i_plus_one > 0) {
+                                        //cout << "no edge from " << l << " to " << m << endl;
+                                    }
+                                }
+                                //cout << "\n";
+                            }
+                            vector<int> path;
+                            dijkstra(g,0,num_of_vertex-1,path);
+                            //int index[path.size() - 1];
+                            for(int i = (int) (path.size() - 1); i >= 0; i--) {
+                                cout<< path[i] << "->" << path[i - 1];
+                                if (i == 0) {
+                                    continue;
+                                }
+                                cout << "\ni: " << i << " i - 1: " << i - 1 << endl;
+                                XDrawLine(dis,win,gc, shrink_array[path[i]][0],shrink_array[path[i]][1],shrink_array[path[i - 1]][0],shrink_array[path[i - 1]][1]);
+                            }
+                        }
+
                     } else {
-                        p2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
-                        q2 = {shrink_array[triangle + 1][0], shrink_array[triangle + 1][1]};
+                        continue;
                     }
-                    // now check
-                    if (check_intersection(p1, q1, p2, q2)) {
-                        //intersection
-                        edge_start_to_target++;
-                    }
+                    printf("\nYou pressed a button at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
+
+                    XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
+                    XDrawPoint(dis, win, gc, x, y);
+                    XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
                 }
-                if (edge_start_to_target == 0) {
-                    cout << "There exists a direct edge from start to target\n";
-                    XDrawLine(dis,win,gc, shrink_array[0][0],shrink_array[0][1],shrink_array[num_of_vertex-1][0],shrink_array[num_of_vertex-1][1]);
-                } else {
-                    for (int l = 0; l < num_of_vertex; l++) {
-
-                        // pick en edge l and l + 1
-                        p1 = {shrink_array[l][0], shrink_array[l][1]};
-                        for (int m = l + 1; m < num_of_vertex; m++) {
-                            edge_i_to_i_plus_one = 0;
-                            q1 = {shrink_array[m][0], shrink_array[m][1]};
-                            for (int triangle = 1; triangle < (line_count * 3) + 1; triangle++) {
-                                // 1 to 2 / 2 to 3 / 1 to 3
-                                if ((triangle % 3) == 0) {
-                                    p2 = {shrink_array[triangle - 2][0], shrink_array[triangle - 2][1]};
-                                    q2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
-                                } else {
-                                    p2 = {shrink_array[triangle][0], shrink_array[triangle][1]};
-                                    q2 = {shrink_array[triangle + 1][0], shrink_array[triangle + 1][1]};
-                                }
-                                // now check
-                                if (check_intersection(p1, q1, p2, q2)) {
-                                    //cout << "Yes\n";
-                                    edge_i_to_i_plus_one++;
-                                    /*cout << "intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
-                                            "q1: (" << q1.x << ", " << q1.y << ") and "
-                                                 "p2: (" << p2.x << ", " << p2.y << ") "
-                                                 "q2: (" << q2.x << ", " << q2.y << ") \n";*/
-                                } else {
-                                    /*cout << "no intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
-                                            "q1: (" << q1.x << ", " << q1.y << ") and "
-                                                 "p2: (" << p2.x << ", " << p2.y << ") "
-                                                 "q2: (" << q2.x << ", " << q2.y << ") \n";*/
-                                }
-                            }
-                            if (edge_i_to_i_plus_one == 0) {
-                                // calc distance from p to q
-                                distpq = calc_dist(p1.x, p1.y, q1.x, q1.y);
-                                //cout << "edge from " << l << " to " << m << ". distance = " << distpq << endl;
-                                g[l].push_back(make_pair(m, distpq));
-                                g[m].push_back(make_pair(l, distpq));
-                            } else if (edge_i_to_i_plus_one > 0) {
-                                //cout << "no edge from " << l << " to " << m << endl;
-                            }
-                        }
-                        //cout << "\n";
-                    }
-                    vector<int> path;
-                    dijkstra(g,0,num_of_vertex-1,path);
-                    //int index[path.size() - 1];
-                    for(int i = (int) (path.size() - 1); i >= 0; i--) {
-                        cout<< path[i] << "->" << path[i - 1];
-                        if (i == 0) {
-                            continue;
-                        }
-                        cout << "\ni: " << i << " i - 1: " << i - 1 << endl;
-                        XDrawLine(dis,win,gc, shrink_array[path[i]][0],shrink_array[path[i]][1],shrink_array[path[i - 1]][0],shrink_array[path[i - 1]][1]);
-                    }
-                }
-
-            } else {
-                continue;
-            }
-            printf("\nYou pressed a button at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
-
-            XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
-            XDrawPoint(dis, win, gc, x, y);
-            XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+                break;
+            default:break;
         }
-    }
+
+
+
+
+
+}
 
 #pragma clang diagnostic pop
 
-    /*-------------------------------------------------------------------------------------------*/
+/*-------------------------------------------------------------------------------------------*/
 
 }
 
