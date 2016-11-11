@@ -65,16 +65,10 @@ void dijkstra(const Graph  &G,const int &source,const int &destination,vector<in
 
 const int INIT_COLS = 6;
 const int NUM_COLS = 2;
-
-
-
-
 struct Point{
     int x;
     int y;
 };
-
-
 
 bool ends_with(const std::string &, const std::string &);
 
@@ -139,13 +133,10 @@ int main(int argc, char *argv[]) {
                     coordinates[line_count][3] = atoi(split_vector[4].c_str());
                     coordinates[line_count][4] = atoi(split_vector[6].c_str());
                     coordinates[line_count][5] = atoi(split_vector[7].c_str());
-
                     line_count++;
                 }
             }
-
             const int num_of_vertex = (line_count * 3) + 2;
-
             // first index the matrix for easy access
             int shrink_array[num_of_vertex][NUM_COLS];
             int k = 0;
@@ -158,15 +149,13 @@ int main(int argc, char *argv[]) {
                 }
                 k++;
             }
-
             /*for (int index = 0; index < num_of_vertex; index++) {
                 for (int j = 0; j < 2; j++) {
                     printf("shrink_array[%d][%d] = %d\n", index,j, shrink_array[index][j] );
                 }
                 printf("\n");
             }*/
-
-            cout << "(" << argv[1] << ") file was passed.\n" << endl;
+            cout << "\'" << argv[1] << "\' file accepted\n" << endl;
             split_vector.clear();
             input_file.close();
 
@@ -178,34 +167,26 @@ int main(int argc, char *argv[]) {
             return 0;
         }
     } else if (argc < 2) {
-        /*cout << "The argument supplied is " << argv[1] << endl;
-        cout << "But its not .txt format\n";*/
-        //cout << "Please pass a \n";
         cout << "No valid file arguments was passes. Starting manual process\n";
         // call the window methods
         drawing_board(0, 0, true);
     } else {
         cout << "Too many arguments bro. Need just one file\n";
     }
-
     return 0;
 }
 
 void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
-
     /*for (int index = 0; index < num_of_vertex; index++) {
         for (int j = 0; j < 2; j++) {
             printf("shrink_array[%d][%d] = %d\n", index,j, shrink_array[index][j] );
         }
         printf("\n");
     }*/
-
     /*----------------------------------------------------------------------------------------*/
-
     XEvent event;		/* the XEvent declaration !!! */
     KeySym key;		/* a dealie-bob to handle KeyPress Events */
     char text[255];		/* a char buffer for KeyPress Events */
-
     init_x();
     int x, y;
     int index = 0;
@@ -213,10 +194,7 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
     bool right_click = false;
     int start_x = 0, start_y = 0;
     int num_of_clicks = 0;
-
     vector<pair<int, int> > coordinates;
-
-
     /* look for events forever... */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -225,8 +203,6 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
            Note:  only events we set the mask for are detected!
         */
         XNextEvent(dis, &event);
-
-
         switch (event.type) {
             case Expose:
                 if (event.type==Expose && event.xexpose.count==0) {
@@ -260,23 +236,20 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                 }
             case ButtonPress:
                 //tell where the mouse Button was Pressed
-
                 x = event.xbutton.x;
                 y = event.xbutton.y;
-
                 coordinates.resize((unsigned long) index++);
-
                 if (num_of_vertex == 0) {
                     if (event.xbutton.button == Button1 && !right_click) {
                         //cout << "Left click\n";
-                        printf("\nLeft click at (%i,%i)\n", x, y);
+                        //printf("\nLeft click at (%i,%i)\n", x, y);
                         index -=1;
                         coordinates.push_back(make_pair(x, y));
-                        cout << coordinates[index].first << " " << coordinates[index].second << endl;
+                        //cout << coordinates[index].first << " " << coordinates[index].second << endl;
                         index++;
-                        cout << index << " " << coordinates.size() << endl;
+                        //cout << index << " " << coordinates.size() << endl;
                         if (index % 3 == 0) {
-                            cout << "hi";
+                            //cout << "hi";
 
                             XDrawLine(dis,win,gc, coordinates[index_j].first,coordinates[index_j].second,
                                       coordinates[index_j + 1].first,coordinates[index_j + 1].second);
@@ -286,18 +259,15 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                                       coordinates[index_j + 2].first,coordinates[index_j + 2].second);
                             index_j += 3;
                         }
-
                     } else if (event.xbutton.button == Button3 ) {
                         //cout << "Right click\n";
                         right_click = true;
-
                     } else if (event.xbutton.button == Button1 && right_click) {
                         // Now get the two points
-
                         num_of_clicks++;
 
                         if (num_of_clicks == 1) {
-                            printf("\nStart Left click at (%i,%i)\n", x, y);
+                            //printf("\nStart Left click at (%i,%i)\n", x, y);
                             strcpy(text,"Start");
                             start_x = x;
                             start_y = y;
@@ -305,9 +275,9 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                             XDrawPoint(dis, win, gc, x, y);
                             XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
                         } else if (num_of_clicks == 2) {
-                            printf("\nTarget Left click at (%i,%i)\n", x, y);
+                            //printf("\nTarget Left click at (%i,%i)\n", x, y);
                             strcpy(text,"Target");
-                            cout << "coordinates.size() = " << coordinates.size() << endl;
+                            //cout << "coordinates.size() = " << coordinates.size() << endl;
                             int manual_vertices[coordinates.size()][NUM_COLS];
                             manual_vertices[0][0] = start_x;
                             manual_vertices[0][1] = start_y;
@@ -317,7 +287,7 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                             }
                             manual_vertices[coordinates.size() - 1][0] = x;
                             manual_vertices[coordinates.size() - 1][1] = y;
-                            cout << "line count = " << coordinates.size()<< endl;
+                            //cout << "line count = " << coordinates.size()<< endl;
 
                             XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
                             XDrawPoint(dis, win, gc, x, y);
@@ -341,14 +311,10 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                     } else if (num_of_clicks == 2) {
                         printf("\nTarget Left click at (%i,%i)\n", x, y);
                         strcpy(text,"Target");
-                        //int vertex = line_count * 3;
                         vertices[0][0] = start_x;
                         vertices[0][1] = start_y;
                         vertices[num_of_vertex - 1][0] = x;
                         vertices[num_of_vertex - 1][1] = y;
-
-
-
                         for (int index_k = 0; index_k < num_of_vertex; index_k++) {
                             for (int j = 0; j < 2; j++) {
                                 printf("vertices[%d][%d] = %d\n", index_k,j, vertices[index_k][j] );
@@ -361,14 +327,9 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
 
                         compute(event, vertices, num_of_vertex);
                     }
-
-
-
                     //compute(event, vertices, line_count);
                 }
                 //printf("\nYou pressed a button at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
-
-
                 break;
             default:break;
         }
@@ -382,143 +343,99 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
 
 void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
     // start and target points
-
-    //int start_target[NUM_COLS][NUM_COLS];
-
+    // now that we have everything.
+    // we make connections and check for valid edges
     const int num_of_vertex = line_count;
+    int edge_start_to_target = 0;
+    int edge_i_to_i_plus_one;
+    int distpq = 0;
+    struct Point p1, q1, p2, q2;
 
-    /*for (int index = 0; index < num_of_vertex; index++) {
-            for (int j = 0; j < 2; j++) {
-                printf("vertices[%d][%d] = %d\n", index,j, vertices[index][j] );
-            }
-            printf("\n");
-        }*/
+    Graph g;
+    g.resize((unsigned long) (num_of_vertex));
 
-    // Now get the two points
-    //num_of_clicks++;
-
-    //tell where the mouse Button was Pressed
-    /*int x = event.xbutton.x;
-    int y = event.xbutton.y;*/
-
-    /*if (num_of_clicks == 1) {
-        strcpy(text,"Start");
-        start_target[0][0] = x;
-        start_target[0][1] = y;
-    } else if (num_of_clicks == 2) {
-        strcpy(text,"Target");
-        start_target[1][0] = x;
-        start_target[1][1] = y;
-        // now that we have everything.
-        // we make connections and check for valid edges
-        // add start at 0 and target at as last Point
-        vertices[0][0] = start_target[0][0];
-        vertices[0][1] = start_target[0][1];
-        vertices[(line_count * 3) + 1][0] = start_target[1][0];
-        vertices[(line_count * 3) + 1][1] = start_target[1][1];*/
-    {
-        /*for (int index = 0; index < num_of_vertex; index++) {
-            for (int j = 0; j < 2; j++) {
-                printf("shrink_array[%d][%d] = %d\n", index,j, shrink_array[index][j] );
-            }
-            printf("\n");
-        }*/
-
-        int edge_start_to_target = 0;
-        int edge_i_to_i_plus_one;
-        int distpq = 0;
-
-        struct Point p1, q1, p2, q2;
-        Graph g;
-        g.resize((unsigned long) (num_of_vertex));
-
-        // 1. check if direct edge exists between start and target
-        // connect the two and check with all other existing triangle edges
-        // this is the edge from start to target
-        p1 = {vertices[0][0], vertices[0][1]};
-        q1 = {vertices[num_of_vertex-1][0], vertices[num_of_vertex-1][1]};
-        for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) { // (line_count * 3) + 1
-            // 1 to 2 / 2 to 3 / 1 to 3
-            if ((triangle % 3) == 0) {
-                p2 = {vertices[triangle - 2][0], vertices[triangle - 2][1]};
-                q2 = {vertices[triangle][0], vertices[triangle][1]};
-            } else {
-                p2 = {vertices[triangle][0], vertices[triangle][1]};
-                q2 = {vertices[triangle + 1][0], vertices[triangle + 1][1]};
-            }
-            // now check
-            if (check_intersection(p1, q1, p2, q2)) {
-                //intersection
-                edge_start_to_target++;
-            }
-        }
-        if (edge_start_to_target == 0) {
-            cout << "There exists a direct edge from start to target\n";
-            XDrawLine(dis,win,gc, vertices[0][0],vertices[0][1],vertices[num_of_vertex-1][0],vertices[num_of_vertex-1][1]);
+    // 1. check if direct edge exists between start and target
+    // connect the two and check with all other existing triangle edges
+    // this is the edge from start to target
+    p1 = {vertices[0][0], vertices[0][1]};
+    q1 = {vertices[num_of_vertex-1][0], vertices[num_of_vertex-1][1]};
+    for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) { // (line_count * 3) + 1
+        // 1 to 2 / 2 to 3 / 1 to 3
+        if ((triangle % 3) == 0) {
+            p2 = {vertices[triangle - 2][0], vertices[triangle - 2][1]};
+            q2 = {vertices[triangle][0], vertices[triangle][1]};
         } else {
-            for (int l = 0; l < num_of_vertex; l++) {
-
-                // pick en edge l and l + 1
-                p1 = {vertices[l][0], vertices[l][1]};
-                for (int m = l + 1; m < num_of_vertex; m++) {
-                    edge_i_to_i_plus_one = 0;
-                    q1 = {vertices[m][0], vertices[m][1]};
-                    for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) {
-                        // 1 to 2 / 2 to 3 / 1 to 3
-                        if ((triangle % 3) == 0) {
-                            p2 = {vertices[triangle - 2][0], vertices[triangle - 2][1]};
-                            q2 = {vertices[triangle][0], vertices[triangle][1]};
-                        } else {
-                            p2 = {vertices[triangle][0], vertices[triangle][1]};
-                            q2 = {vertices[triangle + 1][0], vertices[triangle + 1][1]};
-                        }
-                        // now check
-                        if (check_intersection(p1, q1, p2, q2)) {
-                            //cout << "Yes\n";
-                            edge_i_to_i_plus_one++;
-                            /*cout << "intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
-                                    "q1: (" << q1.x << ", " << q1.y << ") and "
-                                         "p2: (" << p2.x << ", " << p2.y << ") "
-                                         "q2: (" << q2.x << ", " << q2.y << ") \n";*/
-                        } else {
-                            /*cout << "no intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
-                                    "q1: (" << q1.x << ", " << q1.y << ") and "
-                                         "p2: (" << p2.x << ", " << p2.y << ") "
-                                         "q2: (" << q2.x << ", " << q2.y << ") \n";*/
-                        }
-                    }
-                    if (edge_i_to_i_plus_one == 0) {
-                        // calc distance from p to q
-                        distpq = calc_dist(p1.x, p1.y, q1.x, q1.y);
-                        //cout << "edge from " << l << " to " << m << ". distance = " << distpq << endl;
-                        g[l].push_back(make_pair(m, distpq));
-                        g[m].push_back(make_pair(l, distpq));
-                    } else if (edge_i_to_i_plus_one > 0) {
-                        //cout << "no edge from " << l << " to " << m << endl;
-                    }
-                }
-                //cout << "\n";
-            }
-            vector<int> path;
-            dijkstra(g,0,num_of_vertex-1,path);
-            //int index[path.size() - 1];
-            for(int i = (int) (path.size() - 1); i >= 0; i--) {
-                cout<< path[i] << "->" << path[i - 1];
-                if (i == 0) {
-                    continue;
-                }
-                cout << "\ni: " << i << " i - 1: " << i - 1 << endl;
-                XDrawLine(dis,win,gc, vertices[path[i]][0],vertices[path[i]][1],vertices[path[i - 1]][0],vertices[path[i - 1]][1]);
-            }
+            p2 = {vertices[triangle][0], vertices[triangle][1]};
+            q2 = {vertices[triangle + 1][0], vertices[triangle + 1][1]};
         }
-
-
+        // now check
+        if (check_intersection(p1, q1, p2, q2)) {
+            //intersection
+            edge_start_to_target++;
+            cout << "intersection " << triangle << " p1: (" << p1.x << ", " << p1.y << ") "
+                                "q1: (" << q1.x << ", " << q1.y << ") and "
+                                     "p2: (" << p2.x << ", " << p2.y << ") "
+                                     "q2: (" << q2.x << ", " << q2.y << ") \n";
+        }
     }
-    /*printf("\nYou pressed a button at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
-
-    XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
-    XDrawPoint(dis, win, gc, x, y);
-    XDrawString(dis, win, gc, x, y, text, (int) strlen(text));*/
+    if (edge_start_to_target == 0) {
+        cout << "There exists a direct edge from start to target\n";
+        XDrawLine(dis,win,gc, vertices[0][0],vertices[0][1],vertices[num_of_vertex-1][0],vertices[num_of_vertex-1][1]);
+    } else {
+        for (int l = 0; l < num_of_vertex; l++) {
+            // pick en edge l and l + 1
+            p1 = {vertices[l][0], vertices[l][1]};
+            for (int m = l + 1; m < num_of_vertex; m++) {
+                edge_i_to_i_plus_one = 0;
+                q1 = {vertices[m][0], vertices[m][1]};
+                for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) {
+                    // 1 to 2 / 2 to 3 / 1 to 3
+                    if ((triangle % 3) == 0) {
+                        p2 = {vertices[triangle - 2][0], vertices[triangle - 2][1]};
+                        q2 = {vertices[triangle][0], vertices[triangle][1]};
+                    } else {
+                        p2 = {vertices[triangle][0], vertices[triangle][1]};
+                        q2 = {vertices[triangle + 1][0], vertices[triangle + 1][1]};
+                    }
+                    // now check
+                    if (check_intersection(p1, q1, p2, q2)) {
+                        //cout << "Yes\n";
+                        edge_i_to_i_plus_one++;
+                        /*cout << "intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
+                                "q1: (" << q1.x << ", " << q1.y << ") and "
+                                     "p2: (" << p2.x << ", " << p2.y << ") "
+                                     "q2: (" << q2.x << ", " << q2.y << ") \n";*/
+                    } else {
+                        /*cout << "no intersection " << l << " p1: (" << p1.x << ", " << p1.y << ") "
+                                "q1: (" << q1.x << ", " << q1.y << ") and "
+                                     "p2: (" << p2.x << ", " << p2.y << ") "
+                                     "q2: (" << q2.x << ", " << q2.y << ") \n";*/
+                    }
+                }
+                if (edge_i_to_i_plus_one == 0) {
+                    // calc distance from p to q
+                    distpq = calc_dist(p1.x, p1.y, q1.x, q1.y);
+                    //cout << "edge from " << l << " to " << m << ". distance = " << distpq << endl;
+                    g[l].push_back(make_pair(m, distpq));
+                    g[m].push_back(make_pair(l, distpq));
+                } else if (edge_i_to_i_plus_one > 0) {
+                    //cout << "no edge from " << l << " to " << m << endl;
+                }
+            }
+            //cout << "\n";
+        }
+        vector<int> path;
+        dijkstra(g,0,num_of_vertex-1,path);
+        //int index[path.size() - 1];
+        for(int i = (int) (path.size() - 1); i >= 0; i--) {
+            //cout<< path[i] << "->" << path[i - 1];
+            if (i == 0) {
+                continue;
+            }
+            //cout << "\ni: " << i << " i - 1: " << i - 1 << endl;
+            XDrawLine(dis,win,gc, vertices[path[i]][0],vertices[path[i]][1],vertices[path[i - 1]][0],vertices[path[i - 1]][1]);
+        }
+    }
 }
 
 bool check_intersection(Point p1, Point q1, Point p2, Point q2) {
@@ -527,7 +444,6 @@ bool check_intersection(Point p1, Point q1, Point p2, Point q2) {
       And ((Det (s r p) * det ( s r q))< 0)
       Then the edge pq intersects sr
      */
-
     int pqr = 0, pqs = 0, srp = 0, srq = 0;
     // p1 = p, q1 = q, r = p2, s = q2
 
@@ -549,10 +465,11 @@ bool check_intersection(Point p1, Point q1, Point p2, Point q2) {
 
     if (((pqr * pqs) < 0) && ((srp * srq) < 0)) {
         //cout << "Intersection\n";
-        return True;
+        cout << pqr << " * " << pqs << " " << srp << " * " << srq << endl;
+        return true;
     } else {
         //cout << "Nope\n";
-        return False;
+        return false;
     }
 }
 
@@ -581,14 +498,11 @@ void split(const string &s, char delim, vector<string> &elems) {
 string parse_string(std::string str) {
     // erase the front of the string
     str.erase(0,3);
-
     // erase the ending
     str.erase(str.length() - 1, 1);
-
     std::replace(str.begin(), str.end(), ' ', '\0');
     std::replace(str.begin(), str.end(), '(', ',');
     std::replace(str.begin(), str.end(), ')', ',');
-
     return str;
 }
 
