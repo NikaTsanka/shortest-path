@@ -76,7 +76,7 @@ void split(const string &, char, vector<string> &);
 
 string parse_string(std::string);
 
-int det(int, int, int, int, int, int);
+double det(int, int, int, int, int, int);
 
 bool check_intersection(Point, Point, Point, Point);
 
@@ -444,7 +444,7 @@ bool check_intersection(Point p1, Point q1, Point p2, Point q2) {
       And ((Det (s r p) * det ( s r q))< 0)
       Then the edge pq intersects sr
      */
-    int pqr = 0, pqs = 0, srp = 0, srq = 0;
+    double pqr = 0, pqs = 0, srp = 0, srq = 0;
     // p1 = p, q1 = q, r = p2, s = q2
 
     pqr = det(p1.x, p1.y, // p
@@ -465,10 +465,11 @@ bool check_intersection(Point p1, Point q1, Point p2, Point q2) {
 
     if (((pqr * pqs) < 0) && ((srp * srq) < 0)) {
         //cout << "Intersection\n";
-        cout << pqr << " * " << pqs << " " << srp << " * " << srq << endl;
+        //cout << pqr << " * " << pqs << " " << srp << " * " << srq << endl;
         return true;
     } else {
         //cout << "Nope\n";
+        //cout << pqr << " * " << pqs << " " << srp << " * " << srq << endl;
         return false;
     }
 }
@@ -477,7 +478,7 @@ int calc_dist(const int x1, const int y1, const int x2, const int y2) {
     return (int) sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
 }
 
-int det(int px, int py, int qx, int qy, int rx, int ry) {
+double det(int px, int py, int qx, int qy, int rx, int ry) {
     return (px*qy)+(py*rx)+(qx*ry)-(qy*rx)-(px*ry)-(py*qx);
 };
 
