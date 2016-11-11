@@ -107,7 +107,7 @@ void redraw();
 
 void drawing_board(int[][NUM_COLS], int, bool manual);
 
-void compute(XEvent &event, char text[255], int vertices[][NUM_COLS], int line_count);
+void compute(XEvent &event, int vertices[][NUM_COLS], int line_count);
 
 int main(int argc, char *argv[]) {
     if (argc == 2 && ends_with(argv[1], ".txt")) {
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
             int shrink_array[num_of_vertex][NUM_COLS];
             int k = 0;
             // leave out first and the last elements
-            for (int i = 1; i < line_count * 3;) {
+            for (int i = 1; i < num_of_vertex - 2;) {
                 for (int j = 0; j < INIT_COLS; j += 2) {
                     shrink_array[i][0] = coordinates[k][j];
                     shrink_array[i][1] = coordinates[k][j + 1];
@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
             input_file.close();
 
             // start the x-server with the read coordinates
-            drawing_board(shrink_array, line_count, false);
+            drawing_board(shrink_array, num_of_vertex, false);
 
         } else {
             cout << "Couldn't open the specified file\n";
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void drawing_board(int vertices[][NUM_COLS], int line_count, bool manual) {
+void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
 
     /*for (int index = 0; index < num_of_vertex; index++) {
         for (int j = 0; j < 2; j++) {
@@ -233,7 +233,7 @@ void drawing_board(int vertices[][NUM_COLS], int line_count, bool manual) {
                     /* the window was exposed redraw it! */
                     redraw();
                     if (!manual) {
-                        const int num_of_vertex = (line_count * 3) + 2;
+                        //const int num_of_vertex = (line_count * 3);
                         // draw triangles
                         for (int i = 1; i < num_of_vertex - 2; i+=3) {
                             // 3 lines and points
@@ -266,7 +266,7 @@ void drawing_board(int vertices[][NUM_COLS], int line_count, bool manual) {
 
                 coordinates.resize((unsigned long) index++);
 
-                if (line_count == 0) {
+                if (num_of_vertex == 0) {
                     if (event.xbutton.button == Button1 && !right_click) {
                         //cout << "Left click\n";
                         printf("\nLeft click at (%i,%i)\n", x, y);
@@ -323,12 +323,48 @@ void drawing_board(int vertices[][NUM_COLS], int line_count, bool manual) {
                             XDrawPoint(dis, win, gc, x, y);
                             XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
 
-                            compute(event, text, manual_vertices, (int) coordinates.size());
+                            compute(event, manual_vertices, (int) coordinates.size());
                         }
 
                     }
                 } else {
-                    //compute(event, text, vertices, line_count);
+                    // get the start and target and set
+                    num_of_clicks++;
+                    if (num_of_clicks == 1) {
+                        printf("\nStart Left click at (%i,%i)\n", x, y);
+                        strcpy(text,"Start");
+                        start_x = x;
+                        start_y = y;
+                        XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
+                        XDrawPoint(dis, win, gc, x, y);
+                        XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+                    } else if (num_of_clicks == 2) {
+                        printf("\nTarget Left click at (%i,%i)\n", x, y);
+                        strcpy(text,"Target");
+                        //int vertex = line_count * 3;
+                        vertices[0][0] = start_x;
+                        vertices[0][1] = start_y;
+                        vertices[num_of_vertex - 1][0] = x;
+                        vertices[num_of_vertex - 1][1] = y;
+
+
+
+                        for (int index_k = 0; index_k < num_of_vertex; index_k++) {
+                            for (int j = 0; j < 2; j++) {
+                                printf("vertices[%d][%d] = %d\n", index_k,j, vertices[index_k][j] );
+                            }
+                            printf("\n");
+                        }
+                        XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
+                        XDrawPoint(dis, win, gc, x, y);
+                        XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+
+                        compute(event, vertices, num_of_vertex);
+                    }
+
+
+
+                    //compute(event, vertices, line_count);
                 }
                 //printf("\nYou pressed a button at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
 
@@ -344,19 +380,19 @@ void drawing_board(int vertices[][NUM_COLS], int line_count, bool manual) {
 
 }
 
-void compute(XEvent &event, char text[255], int vertices[][NUM_COLS], int line_count) {
+void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
     // start and target points
 
     //int start_target[NUM_COLS][NUM_COLS];
 
     const int num_of_vertex = line_count;
 
-    for (int index = 0; index < num_of_vertex; index++) {
+    /*for (int index = 0; index < num_of_vertex; index++) {
             for (int j = 0; j < 2; j++) {
                 printf("vertices[%d][%d] = %d\n", index,j, vertices[index][j] );
             }
             printf("\n");
-        }
+        }*/
 
     // Now get the two points
     //num_of_clicks++;
@@ -528,11 +564,6 @@ int det(int px, int py, int qx, int qy, int rx, int ry) {
     return (px*qy)+(py*rx)+(qx*ry)-(qy*rx)-(px*ry)-(py*qx);
 };
 
-
-
-
-
-
 bool ends_with(const std::string &str, const std::string &suffix) {
     return str.size() >= suffix.size() &&
            str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
@@ -560,8 +591,6 @@ string parse_string(std::string str) {
 
     return str;
 }
-
-
 
 void init_x() {
 /* get the colors black and white (see section for details) */
@@ -600,84 +629,3 @@ void close_x() {
 void redraw() {
     XClearWindow(dis, win);
 }
-
-
-/*
-
-*/
-/*----------------------------------------------------------------------------------------*//*
-
-
-        XEvent event;		*/
-/* the XEvent declaration !!! *//*
-
-        KeySym key;		*/
-/* a dealie-bob to handle KeyPress Events *//*
-
-        char text[255];		*/
-/* a char buffer for KeyPress Events *//*
-
-
-        init_x();
-
-*/
-/* look for events forever... *//*
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
-        while(1) {
-*/
-/* get the next event and stuff it into our event variable.
-   Note:  only events we set the mask for are detected!
-*//*
-
-            XNextEvent(dis, &event);
-
-            if (event.type==Expose && event.xexpose.count==0) {
-*/
-/* the window was exposed redraw it! *//*
-
-                redraw();
-            }
-            if (event.type==KeyPress&&
-                XLookupString(&event.xkey,text,255,&key,0)==1) {
-*/
-/* use the XLookupString routine to convert the invent
-   KeyPress data into regular text.  Weird but necessary...
-*//*
-
-                if (text[0]=='q') {
-                    close_x();
-                }
-                printf("You pressed the %c key!\n",text[0]);
-            }
-            if (event.type==ButtonPress) {
-*/
-/* tell where the mouse Button was Pressed *//*
-
-                int x=event.xbutton.x,
-                        y=event.xbutton.y;
-
-//strcpy(text,"X is FUN!");
-                printf("You pressed a button at (%i,%i)\n",
-                       event.xbutton.x,event.xbutton.y);
-
-                XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
-                XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
-            }
-        }
-#pragma clang diagnostic pop
-
-*/
-/*-------------------------------------------------------------------------------------------*//*
-
-
-*/
-
-/*for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 6; j++) {
-            //pInt[i][j] = '.';
-            printf("pInt[%d][%d] = %d\n", i,j, coordinates[i][j] );
-        }
-        printf("\n");
-    }*/
