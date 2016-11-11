@@ -8,6 +8,8 @@
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
 #include <queue>
+#include <limits>
+#include <cmath>
 
 using namespace std;
 
@@ -212,7 +214,7 @@ void drawing_board(int vertices[][NUM_COLS], int line_count, bool manual) {
     int start_x = 0, start_y = 0;
     int num_of_clicks = 0;
 
-    vector<pair<int, int>> coordinates;
+    vector<pair<int, int> > coordinates;
 
 
     /* look for events forever... */
@@ -399,7 +401,7 @@ void compute(XEvent &event, char text[255], int vertices[][NUM_COLS], int line_c
         // this is the edge from start to target
         p1 = {vertices[0][0], vertices[0][1]};
         q1 = {vertices[num_of_vertex-1][0], vertices[num_of_vertex-1][1]};
-        for (int triangle = 1; triangle < (line_count * 3) + 1; triangle++) {
+        for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) { // (line_count * 3) + 1
             // 1 to 2 / 2 to 3 / 1 to 3
             if ((triangle % 3) == 0) {
                 p2 = {vertices[triangle - 2][0], vertices[triangle - 2][1]};
@@ -425,7 +427,7 @@ void compute(XEvent &event, char text[255], int vertices[][NUM_COLS], int line_c
                 for (int m = l + 1; m < num_of_vertex; m++) {
                     edge_i_to_i_plus_one = 0;
                     q1 = {vertices[m][0], vertices[m][1]};
-                    for (int triangle = 1; triangle < (line_count * 3) + 1; triangle++) {
+                    for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) {
                         // 1 to 2 / 2 to 3 / 1 to 3
                         if ((triangle % 3) == 0) {
                             p2 = {vertices[triangle - 2][0], vertices[triangle - 2][1]};
