@@ -208,6 +208,9 @@ void drawing_board(int vertices[][NUM_COLS], int line_count, bool manual) {
     int x, y;
     int index = 0;
     int index_j = 0;
+    bool right_click = false;
+    int start_x = 0, start_y = 0;
+    int num_of_clicks = 0;
 
     vector<pair<int, int>> coordinates;
 
@@ -262,7 +265,7 @@ void drawing_board(int vertices[][NUM_COLS], int line_count, bool manual) {
                 coordinates.resize((unsigned long) index++);
 
                 if (line_count == 0) {
-                    if (event.xbutton.button == Button1) {
+                    if (event.xbutton.button == Button1 && !right_click) {
                         //cout << "Left click\n";
                         printf("\nLeft click at (%i,%i)\n", x, y);
                         index -=1;
@@ -284,18 +287,50 @@ void drawing_board(int vertices[][NUM_COLS], int line_count, bool manual) {
 
                     } else if (event.xbutton.button == Button3 ) {
                         //cout << "Right click\n";
-                        printf("\nRight click at (%i,%i)\n", x, y);
-                        int manual_vertices[coordinates.size() + 2][NUM_COLS];
-                        for (int i = 0; i < coordinates.size(); i++) {
-                            manual_vertices[i + 1][0] = coordinates[i].first;
-                            manual_vertices[i + 1][1] = coordinates[i].second;
+                        right_click = true;
+
+                    } else if (event.xbutton.button == Button1 && right_click) {
+                        // Now get the two points
+
+                        num_of_clicks++;
+
+                        if (num_of_clicks == 1) {
+                            printf("\nStart Left click at (%i,%i)\n", x, y);
+                            strcpy(text,"Start");
+                            start_x = x;
+                            start_y = y;
+                            XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
+                            XDrawPoint(dis, win, gc, x, y);
+                            XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+                        } else if (num_of_clicks == 2) {
+                            printf("\nTarget Left click at (%i,%i)\n", x, y);
+                            strcpy(text,"Target");
+                            cout << "coordinates.size() = " << coordinates.size() << endl;
+                            int manual_vertices[coordinates.size()][NUM_COLS];
+                            manual_vertices[0][0] = start_x;
+                            manual_vertices[0][1] = start_y;
+                            for (int i = 0; i < coordinates.size(); i++) {
+                                manual_vertices[i + 1][0] = coordinates[i].first;
+                                manual_vertices[i + 1][1] = coordinates[i].second;
+                            }
+                            manual_vertices[coordinates.size() - 1][0] = x;
+                            manual_vertices[coordinates.size() - 1][1] = y;
+                            cout << "line count = " << coordinates.size()<< endl;
+
+                            XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
+                            XDrawPoint(dis, win, gc, x, y);
+                            XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+
+                            compute(event, text, manual_vertices, (int) coordinates.size());
                         }
-                        cout << "line count = " << coordinates.size();
-                        compute(event, text, manual_vertices, (int) coordinates.size());
+
                     }
                 } else {
                     //compute(event, text, vertices, line_count);
                 }
+                //printf("\nYou pressed a button at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
+
+
                 break;
             default:break;
         }
@@ -309,19 +344,26 @@ void drawing_board(int vertices[][NUM_COLS], int line_count, bool manual) {
 
 void compute(XEvent &event, char text[255], int vertices[][NUM_COLS], int line_count) {
     // start and target points
-    int num_of_clicks = 0;
-    int start_target[NUM_COLS][NUM_COLS];
 
-    const int num_of_vertex = (line_count * 3) + 2;
+    //int start_target[NUM_COLS][NUM_COLS];
+
+    const int num_of_vertex = line_count;
+
+    for (int index = 0; index < num_of_vertex; index++) {
+            for (int j = 0; j < 2; j++) {
+                printf("vertices[%d][%d] = %d\n", index,j, vertices[index][j] );
+            }
+            printf("\n");
+        }
 
     // Now get the two points
-    num_of_clicks++;
+    //num_of_clicks++;
 
     //tell where the mouse Button was Pressed
-    int x = event.xbutton.x;
-    int y = event.xbutton.y;
+    /*int x = event.xbutton.x;
+    int y = event.xbutton.y;*/
 
-    if (num_of_clicks == 1) {
+    /*if (num_of_clicks == 1) {
         strcpy(text,"Start");
         start_target[0][0] = x;
         start_target[0][1] = y;
@@ -335,8 +377,8 @@ void compute(XEvent &event, char text[255], int vertices[][NUM_COLS], int line_c
         vertices[0][0] = start_target[0][0];
         vertices[0][1] = start_target[0][1];
         vertices[(line_count * 3) + 1][0] = start_target[1][0];
-        vertices[(line_count * 3) + 1][1] = start_target[1][1];
-
+        vertices[(line_count * 3) + 1][1] = start_target[1][1];*/
+    {
         /*for (int index = 0; index < num_of_vertex; index++) {
             for (int j = 0; j < 2; j++) {
                 printf("shrink_array[%d][%d] = %d\n", index,j, shrink_array[index][j] );
@@ -434,11 +476,11 @@ void compute(XEvent &event, char text[255], int vertices[][NUM_COLS], int line_c
 
 
     }
-    printf("\nYou pressed a button at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
+    /*printf("\nYou pressed a button at (%i,%i)\n", event.xbutton.x,event.xbutton.y);
 
     XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
     XDrawPoint(dis, win, gc, x, y);
-    XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+    XDrawString(dis, win, gc, x, y, text, (int) strlen(text));*/
 }
 
 bool check_intersection(Point p1, Point q1, Point p2, Point q2) {
