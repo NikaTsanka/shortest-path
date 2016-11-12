@@ -188,12 +188,8 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
     KeySym key;		/* a dealie-bob to handle KeyPress Events */
     char text[255];		/* a char buffer for KeyPress Events */
     init_x();
-    int x, y;
-    int index = 0;
-    int index_j = 0;
+    int x, y, start_x = 0, start_y = 0, index_j = 0, index = 0, num_of_clicks = 0;
     bool right_click = false;
-    int start_x = 0, start_y = 0;
-    int num_of_clicks = 0;
     vector<pair<int, int> > coordinates;
     /* look for events forever... */
 #pragma clang diagnostic push
@@ -277,7 +273,13 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                         } else if (num_of_clicks == 2) {
                             //printf("\nTarget Left click at (%i,%i)\n", x, y);
                             strcpy(text,"Target");
-                            //cout << "coordinates.size() = " << coordinates.size() << endl;
+                            int tmp_resize = (int) coordinates.size();
+                            // discard if not divisible by 3 and resize
+                            while (tmp_resize % 3 != 0) {
+                                tmp_resize -= 1;
+                            }
+                            coordinates.resize((unsigned long) tmp_resize + 2);
+
                             int manual_vertices[coordinates.size()][NUM_COLS];
                             manual_vertices[0][0] = start_x;
                             manual_vertices[0][1] = start_y;
@@ -295,7 +297,6 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
 
                             compute(event, manual_vertices, (int) coordinates.size());
                         }
-
                     }
                 } else {
                     // get the start and target and set
@@ -315,12 +316,12 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                         vertices[0][1] = start_y;
                         vertices[num_of_vertex - 1][0] = x;
                         vertices[num_of_vertex - 1][1] = y;
-                        for (int index_k = 0; index_k < num_of_vertex; index_k++) {
+                        /*for (int index_k = 0; index_k < num_of_vertex; index_k++) {
                             for (int j = 0; j < 2; j++) {
                                 printf("vertices[%d][%d] = %d\n", index_k,j, vertices[index_k][j] );
                             }
                             printf("\n");
-                        }
+                        }*/
                         XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
                         XDrawPoint(dis, win, gc, x, y);
                         XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
@@ -372,10 +373,10 @@ void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
         if (check_intersection(p1, q1, p2, q2)) {
             //intersection
             edge_start_to_target++;
-            cout << "intersection " << triangle << " p1: (" << p1.x << ", " << p1.y << ") "
+            /*cout << "intersection " << triangle << " p1: (" << p1.x << ", " << p1.y << ") "
                                 "q1: (" << q1.x << ", " << q1.y << ") and "
                                      "p2: (" << p2.x << ", " << p2.y << ") "
-                                     "q2: (" << q2.x << ", " << q2.y << ") \n";
+                                     "q2: (" << q2.x << ", " << q2.y << ") \n";*/
         }
     }
     if (edge_start_to_target == 0) {
