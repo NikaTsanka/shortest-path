@@ -103,6 +103,12 @@ void drawing_board(int[][NUM_COLS], int, bool manual);
 
 void compute(XEvent &event, int vertices[][NUM_COLS], int line_count);
 
+bool check_point(int x, int y, vector<pair<int, int> >& pVector);
+
+bool check_triangle(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3);
+
+int check_side(int x, int y, int x1, int y1, int x2, int y2);
+
 int main(int argc, char *argv[]) {
     if (argc == 2 && ends_with(argv[1], ".txt")) {
         // vector for splitting lines
@@ -234,9 +240,11 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                 //tell where the mouse Button was Pressed
                 x = event.xbutton.x;
                 y = event.xbutton.y;
-                coordinates.resize((unsigned long) index++);
+
                 if (num_of_vertex == 0) {
                     if (event.xbutton.button == Button1 && !right_click) {
+
+                        coordinates.resize((unsigned long) index++);
                         //cout << "Left click\n";
                         //printf("\nLeft click at (%i,%i)\n", x, y);
                         index -=1;
@@ -261,41 +269,76 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                     } else if (event.xbutton.button == Button1 && right_click) {
                         // Now get the two points
                         num_of_clicks++;
+                        int tmp_resize = (int) coordinates.size();
 
                         if (num_of_clicks == 1) {
                             //printf("\nStart Left click at (%i,%i)\n", x, y);
-                            strcpy(text,"Start");
-                            start_x = x;
-                            start_y = y;
-                            XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
-                            XDrawPoint(dis, win, gc, x, y);
-                            XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
-                        } else if (num_of_clicks == 2) {
-                            //printf("\nTarget Left click at (%i,%i)\n", x, y);
-                            strcpy(text,"Target");
-                            int tmp_resize = (int) coordinates.size();
+
+                            cout << tmp_resize << " before, ";
                             // discard if not divisible by 3 and resize
                             while (tmp_resize % 3 != 0) {
                                 tmp_resize -= 1;
                             }
-                            coordinates.resize((unsigned long) tmp_resize + 2);
+                            coordinates.resize((unsigned long) tmp_resize);
 
-                            int manual_vertices[coordinates.size()][NUM_COLS];
-                            manual_vertices[0][0] = start_x;
-                            manual_vertices[0][1] = start_y;
-                            for (int i = 0; i < coordinates.size(); i++) {
-                                manual_vertices[i + 1][0] = coordinates[i].first;
-                                manual_vertices[i + 1][1] = coordinates[i].second;
+                            cout << "after " << tmp_resize << ".\n";
+
+
+                            // check if start point is in any of the triangles.
+                            // if yes then try to get it again.
+
+                            if (!check_point(x, y, coordinates)) {
+                                cout << "start outside\n";
+                                strcpy(text,"Start");
+                                start_x = x;
+                                start_y = y;
+                                XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
+                                XDrawPoint(dis, win, gc, x, y);
+                                XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+
+                            } else {
+                                cout << "start inside\n";
+                                num_of_clicks = 0;
                             }
-                            manual_vertices[coordinates.size() - 1][0] = x;
-                            manual_vertices[coordinates.size() - 1][1] = y;
-                            //cout << "line count = " << coordinates.size()<< endl;
+                        } else if (num_of_clicks == 2) {
+                            //printf("\nTarget Left click at (%i,%i)\n", x, y);
 
-                            XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
-                            XDrawPoint(dis, win, gc, x, y);
-                            XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+                            //cout << tmp_resize << " before, ";
+                            // discard if not divisible by 3 and resize
+                            while (tmp_resize % 3 != 0) {
+                                tmp_resize -= 1;
+                            }
+                            coordinates.resize((unsigned long) tmp_resize);
 
-                            compute(event, manual_vertices, (int) coordinates.size());
+                            //cout << "after " << tmp_resize << ".\n";
+                            //cout << "numofclicks " << num_of_clicks << ".\n";
+
+                            if (!check_point(x, y, coordinates)) {
+                                strcpy(text, "Target");
+                                // add 2 more.
+                                coordinates.resize((unsigned long) tmp_resize + 2);
+
+                                int manual_vertices[coordinates.size()][NUM_COLS];
+                                manual_vertices[0][0] = start_x;
+                                manual_vertices[0][1] = start_y;
+                                for (int i = 0; i < coordinates.size(); i++) {
+                                    manual_vertices[i + 1][0] = coordinates[i].first;
+                                    manual_vertices[i + 1][1] = coordinates[i].second;
+                                }
+                                manual_vertices[coordinates.size() - 1][0] = x;
+                                manual_vertices[coordinates.size() - 1][1] = y;
+                                //cout << "line count = " << coordinates.size()<< endl;
+
+                                XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
+                                XDrawPoint(dis, win, gc, x, y);
+                                XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+
+                                compute(event, manual_vertices, (int) coordinates.size());
+                            } else {
+                                cout << "target inside\n";
+                                // 1 because the start is not in any triangle and it's accepted.
+                                num_of_clicks = 1;
+                            }
                         }
                     }
                 } else {
@@ -340,6 +383,43 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
 
 /*-------------------------------------------------------------------------------------------*/
 
+}
+
+bool check_point(int x, int y, vector<pair<int, int> >& pVector) {
+    for (int i = 0; i < pVector.size(); i += 3) {
+        // get 3 points
+        if (check_triangle(x, y,
+                           pVector[i].first, pVector[i].second,
+                           pVector[i + 1].first, pVector[i + 1].second,
+                           pVector[i + 2].first, pVector[i + 2].second)) {
+            // print
+            cout << "inside: " << i << "th triangle\n";
+            cout << pVector[i].first << "," << pVector[i].second << " -- " <<
+                    pVector[i + 1].first  << "," << pVector[i + 1].second << " -- " <<
+                    pVector[i + 2].first << "," << pVector[i + 2].second << "\n";
+            return true;
+        }
+    }
+    return false;
+}
+
+bool check_triangle(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3) {
+    // x1 = a, x2 = b, x3 = c, p = x
+    //bool side1 = false, side2 = false, side3 = false;
+
+    // side abp
+    bool side1 = check_side(x, y, x1, y1, x2, y2) >= 0;
+    // side bcp
+    bool side2 = check_side(x, y, x2, y2, x3, y3) >= 0;
+    // side acp
+    bool side3 = check_side(x, y, x3, y3, x1, y1) >= 0;
+
+    // inside if all true
+    return side1 && side2 && side3;
+}
+
+int check_side(int x, int y, int x1, int y1, int x2, int y2) {
+    return (y2 - y1)*(x - x1) + (-x2 + x1)*(y - y1);
 }
 
 void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
