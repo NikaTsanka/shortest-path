@@ -103,11 +103,13 @@ void drawing_board(int[][NUM_COLS], int, bool manual);
 
 void compute(XEvent &event, int vertices[][NUM_COLS], int line_count);
 
-bool check_point(int x, int y, vector<pair<int, int> >& pVector);
+bool check_point_vector(int x, int y, vector<pair<int, int> > &pVector);
 
 bool check_triangle(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3);
 
 float area(int x1, int y1, int x2, int y2, int x3, int y3);
+
+bool check_point_array(int x, int y, int pInt[][NUM_COLS], int array_size);
 
 int main(int argc, char *argv[]) {
     if (argc == 2 && ends_with(argv[1], ".txt")) {
@@ -291,7 +293,7 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                             // check if start point is in any of the triangles.
                             // if yes then try to get it again.
 
-                            if (!check_point(x, y, coordinates)) {
+                            if (!check_point_vector(x, y, coordinates)) {
                                 //cout << "start outside\n";
                                 strcpy(text,"Start");
                                 start_x = x;
@@ -317,7 +319,7 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                             //cout << "after " << tmp_resize << ".\n";
                             //cout << "numofclicks " << num_of_clicks << ".\n";
 
-                            if (!check_point(x, y, coordinates)) {
+                            if (!check_point_vector(x, y, coordinates)) {
                                 //cout << "target outside\n";
                                 strcpy(text, "Target");
                                 // add 2 more.
@@ -350,31 +352,47 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                     // get the start and target and set
                     num_of_clicks++;
                     if (num_of_clicks == 1) {
-                        printf("\nStart Left click at (%i,%i)\n", x, y);
-                        strcpy(text,"Start");
-                        start_x = x;
-                        start_y = y;
-                        XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
-                        XDrawPoint(dis, win, gc, x, y);
-                        XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
-                    } else if (num_of_clicks == 2) {
-                        printf("\nTarget Left click at (%i,%i)\n", x, y);
-                        strcpy(text,"Target");
-                        vertices[0][0] = start_x;
-                        vertices[0][1] = start_y;
-                        vertices[num_of_vertex - 1][0] = x;
-                        vertices[num_of_vertex - 1][1] = y;
-                        /*for (int index_k = 0; index_k < num_of_vertex; index_k++) {
-                            for (int j = 0; j < 2; j++) {
-                                printf("vertices[%d][%d] = %d\n", index_k,j, vertices[index_k][j] );
-                            }
-                            printf("\n");
-                        }*/
-                        XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
-                        XDrawPoint(dis, win, gc, x, y);
-                        XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+                        //printf("\nStart Left click at (%i,%i)\n", x, y);
 
-                        compute(event, vertices, num_of_vertex);
+                        if (!check_point_array(x, y, vertices, num_of_vertex)) {
+                            cout << "start outside\n";
+                            strcpy(text,"Start");
+                            start_x = x;
+                            start_y = y;
+                            XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
+                            XDrawPoint(dis, win, gc, x, y);
+                            XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+                        } else {
+                            num_of_clicks = 0;
+                        }
+
+                    } else if (num_of_clicks == 2) {
+                        //printf("\nTarget Left click at (%i,%i)\n", x, y);
+
+                        if (!check_point_array(x, y, vertices, num_of_vertex)) {
+
+                            strcpy(text,"Target");
+                            vertices[0][0] = start_x;
+                            vertices[0][1] = start_y;
+                            vertices[num_of_vertex - 1][0] = x;
+                            vertices[num_of_vertex - 1][1] = y;
+                            /*for (int index_k = 0; index_k < num_of_vertex; index_k++) {
+                                for (int j = 0; j < 2; j++) {
+                                    printf("vertices[%d][%d] = %d\n", index_k,j, vertices[index_k][j] );
+                                }
+                                printf("\n");
+                            }*/
+                            XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
+                            XDrawPoint(dis, win, gc, x, y);
+                            XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+                            // computeeeeee
+                            compute(event, vertices, num_of_vertex);
+                        } else {
+                            //cout << "target inside\n";
+                            // 1 because the start is not in any triangle and it's accepted.
+                            num_of_clicks = 1;
+                        }
+
                     }
                     //compute(event, vertices, line_count);
                 }
@@ -390,7 +408,20 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
 
 }
 
-bool check_point(int x, int y, vector<pair<int, int> >& pVector) {
+bool check_point_array(int x, int y, int pInt[][NUM_COLS], int array_size) {
+    cout << array_size << " :size\n";
+    for (int i = 1; i < array_size - 2; i += 3) {
+        if (check_triangle(x, y, pInt[i][0],pInt[i][1],
+                           pInt[i + 1][0],pInt[i + 1][1],
+                           pInt[i + 2][0],pInt[i + 2][1])) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool check_point_vector(int x, int y, vector<pair<int, int> > &pVector) {
 
     /*cout << "pVector size: " << pVector.size() << endl;
     for (int i = 0; i < pVector.size(); i += 3) {
@@ -418,6 +449,8 @@ bool check_point(int x, int y, vector<pair<int, int> >& pVector) {
     // if it doesn't lie in any triangle then false.
     return false;
 }
+
+
 
 bool check_triangle(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3) {
     // x1 = a, x2 = b, x3 = c, p = x
