@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
 void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual, int boundary) {
     /*----------------------------------------------------------------------------------------*/
     int x, y, start_x = 0, start_y = 0, index_j = 0, index = 0, num_of_clicks = 0;
-    bool right_click = false;
+    bool right_click = false, repeat = false;
     vector<pair<int, int> > coordinates;
     // the XEvent declaration
     XEvent event;
@@ -231,6 +231,9 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual, int
                     } else if (event.xbutton.button == Button3 ) {
                         right_click = true;
                     } else if (event.xbutton.button == Button1 && right_click) {
+                        if (repeat && num_of_clicks == 2) {
+                            num_of_clicks = 0;
+                        }
                         // Now get the two points
                         num_of_clicks++;
                         int tmp_resize = (int) coordinates.size();
@@ -283,16 +286,20 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual, int
                                 XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
                                 // let's go.
                                 compute(event, manual_vertices, (int) coordinates.size());
+                                // repeat
+                                //num_of_clicks = 0;
+                                repeat = true;
                             } else {
                                 //cout << "target inside\n";
                                 // 1 because the start is not in any triangle and it's accepted.
                                 num_of_clicks = 1;
                             }
-                        } else {
-                            num_of_clicks = 0;
                         }
                     }
                 } else {
+                    if (repeat && num_of_clicks == 2) {
+                        num_of_clicks = 0;
+                    }
                     // get the start and target and set
                     num_of_clicks++;
                     if (num_of_clicks == 1) {
@@ -319,6 +326,7 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual, int
                             XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
                             // go
                             compute(event, vertices, num_of_vertex);
+                            repeat = true;
                         } else {
                             //cout << "target inside\n";
                             // 1 because the start is not in any triangle and it's accepted.
