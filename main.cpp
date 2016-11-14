@@ -107,7 +107,7 @@ bool check_point(int x, int y, vector<pair<int, int> >& pVector);
 
 bool check_triangle(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3);
 
-int check_side(int x, int y, int x1, int y1, int x2, int y2);
+float area(int x1, int y1, int x2, int y2, int x3, int y3);
 
 int main(int argc, char *argv[]) {
     if (argc == 2 && ends_with(argv[1], ".txt")) {
@@ -274,21 +274,25 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                         if (num_of_clicks == 1) {
                             //printf("\nStart Left click at (%i,%i)\n", x, y);
 
-                            cout << tmp_resize << " before, ";
+                            //cout << tmp_resize << " before, ";
                             // discard if not divisible by 3 and resize
                             while (tmp_resize % 3 != 0) {
                                 tmp_resize -= 1;
                             }
                             coordinates.resize((unsigned long) tmp_resize);
 
-                            cout << "after " << tmp_resize << ".\n";
+                            //cout << "after " << tmp_resize << ".\n";
+
+
+
+
 
 
                             // check if start point is in any of the triangles.
                             // if yes then try to get it again.
 
                             if (!check_point(x, y, coordinates)) {
-                                cout << "start outside\n";
+                                //cout << "start outside\n";
                                 strcpy(text,"Start");
                                 start_x = x;
                                 start_y = y;
@@ -297,7 +301,7 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                                 XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
 
                             } else {
-                                cout << "start inside\n";
+                                //cout << "start inside\n";
                                 num_of_clicks = 0;
                             }
                         } else if (num_of_clicks == 2) {
@@ -314,6 +318,7 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                             //cout << "numofclicks " << num_of_clicks << ".\n";
 
                             if (!check_point(x, y, coordinates)) {
+                                //cout << "target outside\n";
                                 strcpy(text, "Target");
                                 // add 2 more.
                                 coordinates.resize((unsigned long) tmp_resize + 2);
@@ -335,7 +340,7 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
 
                                 compute(event, manual_vertices, (int) coordinates.size());
                             } else {
-                                cout << "target inside\n";
+                                //cout << "target inside\n";
                                 // 1 because the start is not in any triangle and it's accepted.
                                 num_of_clicks = 1;
                             }
@@ -386,40 +391,58 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
 }
 
 bool check_point(int x, int y, vector<pair<int, int> >& pVector) {
+
+    /*cout << "pVector size: " << pVector.size() << endl;
     for (int i = 0; i < pVector.size(); i += 3) {
+        cout << "[" << pVector[i].first << "," << pVector[i].second << "] -- [" <<
+             pVector[i + 1].first  << "," << pVector[i + 1].second << "] -- [" <<
+             pVector[i + 2].first << "," << pVector[i + 2].second << "]\n";
+    }*/
+
+    for (int i = 0; i < pVector.size(); i += 3) {
+        // print
+        /*cout << "inside: " << i << "th triangle\n";
+        cout << pVector[i].first << "," << pVector[i].second << " -- " <<
+             pVector[i + 1].first  << "," << pVector[i + 1].second << " -- " <<
+             pVector[i + 2].first << "," << pVector[i + 2].second << "\n";*/
         // get 3 points
         if (check_triangle(x, y,
                            pVector[i].first, pVector[i].second,
                            pVector[i + 1].first, pVector[i + 1].second,
                            pVector[i + 2].first, pVector[i + 2].second)) {
-            // print
-            cout << "inside: " << i << "th triangle\n";
-            cout << pVector[i].first << "," << pVector[i].second << " -- " <<
-                    pVector[i + 1].first  << "," << pVector[i + 1].second << " -- " <<
-                    pVector[i + 2].first << "," << pVector[i + 2].second << "\n";
+            //cout << "inside this triangle: " << i << "\n";
+            // if true then it lies in a triangle.
             return true;
         }
     }
+    // if it doesn't lie in any triangle then false.
     return false;
 }
 
 bool check_triangle(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3) {
     // x1 = a, x2 = b, x3 = c, p = x
-    //bool side1 = false, side2 = false, side3 = false;
 
-    // side abp
-    bool side1 = check_side(x, y, x1, y1, x2, y2) >= 0;
-    // side bcp
-    bool side2 = check_side(x, y, x2, y2, x3, y3) >= 0;
-    // side acp
-    bool side3 = check_side(x, y, x3, y3, x1, y1) >= 0;
+    /* Calculate area of triangle ABC */
+    float A = area (x1, y1, x2, y2, x3, y3);
 
-    // inside if all true
-    return side1 && side2 && side3;
+    /* Calculate area of triangle PBC */
+    float A1 = area (x, y, x2, y2, x3, y3);
+
+    /* Calculate area of triangle PAC */
+    float A2 = area (x1, y1, x, y, x3, y3);
+
+    /* Calculate area of triangle PAB */
+    float A3 = area (x1, y1, x2, y2, x, y);
+
+    /* Check if sum of A1, A2 and A3 is same as A */
+    return (A == A1 + A2 + A3);
 }
 
-int check_side(int x, int y, int x1, int y1, int x2, int y2) {
-    return (y2 - y1)*(x - x1) + (-x2 + x1)*(y - y1);
+/* A utility function to calculate area of triangle formed by (x1, y1),
+   (x2, y2) and (x3, y3) */
+float area(int x1, int y1, int x2, int y2, int x3, int y3)
+{
+    return abs((x1*(y2-y3) + x2*(y3-y1)+ x3*(y1-y2))/2.0);
 }
 
 void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
