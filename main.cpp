@@ -355,7 +355,7 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
                         //printf("\nStart Left click at (%i,%i)\n", x, y);
 
                         if (!check_point_array(x, y, vertices, num_of_vertex)) {
-                            cout << "start outside\n";
+                            //cout << "start outside\n";
                             strcpy(text,"Start");
                             start_x = x;
                             start_y = y;
@@ -409,7 +409,7 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual) {
 }
 
 bool check_point_array(int x, int y, int pInt[][NUM_COLS], int array_size) {
-    cout << array_size << " :size\n";
+    //cout << array_size << " :size\n";
     for (int i = 1; i < array_size - 2; i += 3) {
         if (check_triangle(x, y, pInt[i][0],pInt[i][1],
                            pInt[i + 1][0],pInt[i + 1][1],
@@ -475,7 +475,7 @@ bool check_triangle(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3
    (x2, y2) and (x3, y3) */
 float area(int x1, int y1, int x2, int y2, int x3, int y3)
 {
-    return abs((x1*(y2-y3) + x2*(y3-y1)+ x3*(y1-y2))/2.0);
+    return (float) abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2.0);
 }
 
 void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
@@ -494,16 +494,22 @@ void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
     // 1. check if direct edge exists between start and target
     // connect the two and check with all other existing triangle edges
     // this is the edge from start to target
-    p1 = {vertices[0][0], vertices[0][1]};
-    q1 = {vertices[num_of_vertex-1][0], vertices[num_of_vertex-1][1]};
+    //p1 = {vertices[0][0], vertices[0][1]};
+    //q1 = {vertices[num_of_vertex-1][0], vertices[num_of_vertex-1][1]};
+    p1.x = vertices[0][0], p1.y = vertices[0][1];
+    q1.x = vertices[num_of_vertex-1][0], q1.y = vertices[num_of_vertex-1][1];
     for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) { // (line_count * 3) + 1
         // 1 to 2 / 2 to 3 / 1 to 3
         if ((triangle % 3) == 0) {
-            p2 = {vertices[triangle - 2][0], vertices[triangle - 2][1]};
-            q2 = {vertices[triangle][0], vertices[triangle][1]};
+            //p2 = {vertices[triangle - 2][0], vertices[triangle - 2][1]};
+            //q2 = {vertices[triangle][0], vertices[triangle][1]};
+            p2.x = vertices[triangle - 2][0], p2.y = vertices[triangle - 2][1];
+            q2.x = vertices[triangle][0], q2.y = vertices[triangle][1];
         } else {
-            p2 = {vertices[triangle][0], vertices[triangle][1]};
-            q2 = {vertices[triangle + 1][0], vertices[triangle + 1][1]};
+            //p2 = {vertices[triangle][0], vertices[triangle][1]};
+            //q2 = {vertices[triangle + 1][0], vertices[triangle + 1][1]};
+            p2.x = vertices[triangle][0], p2.y = vertices[triangle][1];
+            q2.x = vertices[triangle + 1][0], q2.y = vertices[triangle + 1][1];
         }
         // now check
         if (check_intersection(p1, q1, p2, q2)) {
@@ -521,18 +527,24 @@ void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
     } else {
         for (int l = 0; l < num_of_vertex; l++) {
             // pick en edge l and l + 1
-            p1 = {vertices[l][0], vertices[l][1]};
+            //p1 = {vertices[l][0], vertices[l][1]};
+            p1.x = vertices[l][0], p1.y = vertices[l][1];
             for (int m = l + 1; m < num_of_vertex; m++) {
                 edge_i_to_i_plus_one = 0;
-                q1 = {vertices[m][0], vertices[m][1]};
+                //q1 = {vertices[m][0], vertices[m][1]};
+                q1.x = vertices[m][0], q1.y = vertices[m][1];
                 for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) {
                     // 1 to 2 / 2 to 3 / 1 to 3
                     if ((triangle % 3) == 0) {
-                        p2 = {vertices[triangle - 2][0], vertices[triangle - 2][1]};
-                        q2 = {vertices[triangle][0], vertices[triangle][1]};
+                        //p2 = {vertices[triangle - 2][0], vertices[triangle - 2][1]};
+                        //q2 = {vertices[triangle][0], vertices[triangle][1]};
+                        p2.x = vertices[triangle - 2][0], p2.y = vertices[triangle - 2][1];
+                        q2.x = vertices[triangle][0], q2.y = vertices[triangle][1];
                     } else {
-                        p2 = {vertices[triangle][0], vertices[triangle][1]};
-                        q2 = {vertices[triangle + 1][0], vertices[triangle + 1][1]};
+                        p2.x = vertices[triangle][0], p2.y = vertices[triangle][1];
+                        q2.x = vertices[triangle + 1][0], q2.y = vertices[triangle + 1][1];
+                        //p2 = {vertices[triangle][0], vertices[triangle][1]};
+                        //q2 = {vertices[triangle + 1][0], vertices[triangle + 1][1]};
                     }
                     // now check
                     if (check_intersection(p1, q1, p2, q2)) {
