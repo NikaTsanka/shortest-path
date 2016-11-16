@@ -342,6 +342,119 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual, int
 /*-------------------------------------------------------------------------------------------*/
 }
 
+void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
+    // start and target points
+    // now that we have everything.
+    // we make connections and check for valid edges
+    const int num_of_vertex = line_count;
+    int edge_start_to_target = 0, edge_i_to_i_plus_one, distpq = 0;
+    struct Point p1, q1, p2, q2;
+
+    Graph graph;
+    // set the size
+    graph.resize((unsigned long) (num_of_vertex));
+
+    /*for (int index = 0; index < num_of_vertex; index++) {
+        for (int j = 0; j < 2; j++) {
+            printf("shrink_array[%d][%d] = %d\n", index,j, vertices[index][j] );
+        }
+        printf("\n");
+    }*/
+
+    // 1. check if direct edge exists between start and target
+    // connect the two and check with all other existing triangle edges
+    // this is the edge from start to target
+    p1.x = vertices[0][0], p1.y = vertices[0][1];
+    q1.x = vertices[num_of_vertex-1][0], q1.y = vertices[num_of_vertex-1][1];
+    for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) { // (line_count * 3) + 1
+        //cout << triangle << " :num_of_vertex\n";
+        // 1 to 2 / 2 to 3 / 1 to 3
+        if ((triangle % 3) == 0) {
+            p2.x = vertices[triangle - 2][0], p2.y = vertices[triangle - 2][1];
+            q2.x = vertices[triangle][0], q2.y = vertices[triangle][1];
+        } else {
+            p2.x = vertices[triangle][0], p2.y = vertices[triangle][1];
+            q2.x = vertices[triangle + 1][0], q2.y = vertices[triangle + 1][1];
+        }
+        // now check
+        if (check_intersection(p1, q1, p2, q2)) {
+            // intersection
+            //cout << "Yes\n"; // if there is no way out. do something.
+            edge_start_to_target++;
+        }
+    }
+    if (edge_start_to_target == 0) {
+        //cout << "There exists a direct edge from start to target\n";
+        XDrawLine(dis,win,gc, vertices[0][0],vertices[0][1],vertices[num_of_vertex-1][0],vertices[num_of_vertex-1][1]);
+    } else {
+        int start_intersection, target_intersection = 0;
+        bool possible_path = true;
+        //cout << num_of_vertex << "=num_of_vertex\n";
+        //cout << num_of_vertex - 1 << "=num_of_vertex - 1\n";
+        for (int l = 0; l < num_of_vertex; l++) {
+            //cout << l << "=l\n";
+            start_intersection = 0;
+            //cout << num_of_vertex << " :num_of_vertex\n";
+            // pick en edge l and l + 1
+            p1.x = vertices[l][0], p1.y = vertices[l][1];
+            for (int m = l + 1; m < num_of_vertex; m++) {
+                //cout << m << "=m\n";
+                edge_i_to_i_plus_one = 0;
+                q1.x = vertices[m][0], q1.y = vertices[m][1];
+                //cout << l << " :triangle\n";
+                for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) {
+                    // 1 to 2 / 2 to 3 / 1 to 3
+                    if ((triangle % 3) == 0) {
+                        p2.x = vertices[triangle - 2][0], p2.y = vertices[triangle - 2][1];
+                        q2.x = vertices[triangle][0], q2.y = vertices[triangle][1];
+                    } else {
+                        p2.x = vertices[triangle][0], p2.y = vertices[triangle][1];
+                        q2.x = vertices[triangle + 1][0], q2.y = vertices[triangle + 1][1];
+                    }
+                    // now check
+                    if (check_intersection(p1, q1, p2, q2)) {
+                        edge_i_to_i_plus_one++;
+                    }
+                }
+
+                if (edge_i_to_i_plus_one == 0) {
+                    // calc distance from p to q
+                    distpq = calc_dist(p1.x, p1.y, q1.x, q1.y);
+                    //cout << "edge from " << l << " to " << m << ". distance = " << distpq << endl;
+                    graph[l].push_back(make_pair(m, distpq));
+                    graph[m].push_back(make_pair(l, distpq));
+                } else if (edge_i_to_i_plus_one > 0) {
+                    //cout << "no edge from " << l << " to " << m << endl;
+                    start_intersection++;
+                }
+                if (edge_i_to_i_plus_one > 0 && m == num_of_vertex - 1) {
+                    target_intersection++;
+                    //cout << target_intersection << ":no way in\n";
+                }
+
+                //cout <<
+                // no way out if there are intersections on all possible edges from start.
+                if (start_intersection == num_of_vertex - 1 || target_intersection == num_of_vertex - 1) {
+                    cout << "there is no possible path\n";
+                    possible_path = false;
+                }
+            }
+            //cout << "\n";
+        }
+        if (possible_path) {
+            vector<int> path;
+            dijkstra(graph, 0, num_of_vertex-1, path);
+            for(int i = (int) (path.size() - 1); i >= 0; i--) {
+                if (i == 0) {
+                    continue;
+                }
+                XDrawLine(dis,win,gc, vertices[path[i]][0],vertices[path[i]][1],
+                          vertices[path[i - 1]][0],vertices[path[i - 1]][1]);
+            }
+        }
+    }
+}
+
 void dijkstra(const Graph  &my_graph, const int &start, const int &target, vector<int> &path) {
     // total number of vertices my_graph.size()
     vector<float> d(my_graph.size());
@@ -431,88 +544,6 @@ bool check_triangle(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3
 
 float area(int x1, int y1, int x2, int y2, int x3, int y3) {
     return (float) abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2.0);
-}
-
-void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
-    // start and target points
-    // now that we have everything.
-    // we make connections and check for valid edges
-    const int num_of_vertex = line_count;
-    int edge_start_to_target = 0;
-    int edge_i_to_i_plus_one;
-    int distpq = 0;
-    struct Point p1, q1, p2, q2;
-
-    Graph g;
-    g.resize((unsigned long) (num_of_vertex));
-
-    // 1. check if direct edge exists between start and target
-    // connect the two and check with all other existing triangle edges
-    // this is the edge from start to target
-    p1.x = vertices[0][0], p1.y = vertices[0][1];
-    q1.x = vertices[num_of_vertex-1][0], q1.y = vertices[num_of_vertex-1][1];
-    for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) { // (line_count * 3) + 1
-        // 1 to 2 / 2 to 3 / 1 to 3
-        if ((triangle % 3) == 0) {
-            p2.x = vertices[triangle - 2][0], p2.y = vertices[triangle - 2][1];
-            q2.x = vertices[triangle][0], q2.y = vertices[triangle][1];
-        } else {
-            p2.x = vertices[triangle][0], p2.y = vertices[triangle][1];
-            q2.x = vertices[triangle + 1][0], q2.y = vertices[triangle + 1][1];
-        }
-        // now check
-        if (check_intersection(p1, q1, p2, q2)) {
-            // intersection
-            edge_start_to_target++;
-        }
-    }
-    if (edge_start_to_target == 0) {
-        //cout << "There exists a direct edge from start to target\n";
-        XDrawLine(dis,win,gc, vertices[0][0],vertices[0][1],vertices[num_of_vertex-1][0],vertices[num_of_vertex-1][1]);
-    } else {
-        for (int l = 0; l < num_of_vertex; l++) {
-            // pick en edge l and l + 1
-            p1.x = vertices[l][0], p1.y = vertices[l][1];
-            for (int m = l + 1; m < num_of_vertex; m++) {
-                edge_i_to_i_plus_one = 0;
-                q1.x = vertices[m][0], q1.y = vertices[m][1];
-                for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) {
-                    // 1 to 2 / 2 to 3 / 1 to 3
-                    if ((triangle % 3) == 0) {
-                        p2.x = vertices[triangle - 2][0], p2.y = vertices[triangle - 2][1];
-                        q2.x = vertices[triangle][0], q2.y = vertices[triangle][1];
-                    } else {
-                        p2.x = vertices[triangle][0], p2.y = vertices[triangle][1];
-                        q2.x = vertices[triangle + 1][0], q2.y = vertices[triangle + 1][1];
-                    }
-                    // now check
-                    if (check_intersection(p1, q1, p2, q2)) {
-                        //cout << "Yes\n";
-                        edge_i_to_i_plus_one++;
-                    }
-                }
-                if (edge_i_to_i_plus_one == 0) {
-                    // calc distance from p to q
-                    distpq = calc_dist(p1.x, p1.y, q1.x, q1.y);
-                    //cout << "edge from " << l << " to " << m << ". distance = " << distpq << endl;
-                    g[l].push_back(make_pair(m, distpq));
-                    g[m].push_back(make_pair(l, distpq));
-                } else if (edge_i_to_i_plus_one > 0) {
-                    //cout << "no edge from " << l << " to " << m << endl;
-                }
-            }
-            //cout << "\n";
-        }
-        vector<int> path;
-        dijkstra(g, 0, num_of_vertex-1, path);
-        for(int i = (int) (path.size() - 1); i >= 0; i--) {
-            if (i == 0) {
-                continue;
-            }
-            XDrawLine(dis,win,gc, vertices[path[i]][0],vertices[path[i]][1],
-                      vertices[path[i - 1]][0],vertices[path[i - 1]][1]);
-        }
-    }
 }
 
 bool check_intersection(Point p1, Point q1, Point p2, Point q2) {
