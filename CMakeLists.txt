@@ -22,5 +22,5 @@ include_directories(${X11_INCLUDE_DIR})
 #include_directories(${-L/usr/X11R6/lib})
 
 
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES shortest-path.cpp)
 add_executable(shortest-path-project1 ${SOURCE_FILES})

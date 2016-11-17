@@ -1,3 +1,10 @@
+/*
+ * CSC I0600 - Fundamental Algorithms - Fall Semester 2016
+ * Homework Project 1
+ * Nika Tsankashvili
+ * */
+
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -138,7 +145,7 @@ int main(int argc, char *argv[]) {
             // start the x-server with the read coordinates
             drawing_board(shrink_array, num_of_vertex, false, max);
         } else {
-            cout << "Couldn't open the specified file\n";
+            cout << "Couldn't open the specified file";
             return 0;
         }
     } else if (argc < 2) {
@@ -153,8 +160,7 @@ int main(int argc, char *argv[]) {
 }
 
 void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual, int boundary) {
-    /*----------------------------------------------------------------------------------------*/
-    int x, y, start_x = 0, start_y = 0, index_j = 0, index = 0, num_of_clicks = 0;
+    int x, y, start_x = 0, start_y = 0, index_j = 0, index = 0, num_of_clicks = 0, close = 0;
     bool right_click = false, repeat = false;
     vector<pair<int, int> > coordinates;
     // the XEvent declaration
@@ -170,8 +176,6 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual, int
         init_x(800);
     }
     // look for events forever
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
     cout << "You can use \'q\' or \'Q\' to terminate the program at any time. :)\n";
     while(1) {
         /* get the next event and stuff it into our event variable.
@@ -211,14 +215,13 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual, int
                 // tell where the mouse Button was Pressed
                 x = event.xbutton.x;
                 y = event.xbutton.y;
-
                 if (num_of_vertex == 0) {
+                    // this is manual
                     if (event.xbutton.button == Button1 && !right_click) {
                         coordinates.resize((unsigned long) index++);
                         index -=1;
                         coordinates.push_back(make_pair(x, y));
                         index++;
-
                         if (index % 3 == 0) {
                             XDrawLine(dis,win,gc, coordinates[index_j].first,coordinates[index_j].second,
                                       coordinates[index_j + 1].first,coordinates[index_j + 1].second);
@@ -229,7 +232,11 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual, int
                             index_j += 3;
                         }
                     } else if (event.xbutton.button == Button3 ) {
+                        close++;
                         right_click = true;
+                        if (close == 2) {
+                            close_x();
+                        }
                     } else if (event.xbutton.button == Button1 && right_click) {
                         if (repeat && num_of_clicks == 2) {
                             num_of_clicks = 0;
@@ -297,49 +304,51 @@ void drawing_board(int vertices[][NUM_COLS], int num_of_vertex, bool manual, int
                         }
                     }
                 } else {
-                    if (repeat && num_of_clicks == 2) {
-                        num_of_clicks = 0;
-                    }
-                    // get the start and target and set
-                    num_of_clicks++;
-                    if (num_of_clicks == 1) {
-                        if (!check_point_array(x, y, vertices, num_of_vertex)) {
-                            //cout << "start outside\n";
-                            strcpy(text,"Start");
-                            start_x = x;
-                            start_y = y;
-                            XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
-                            XDrawPoint(dis, win, gc, x, y);
-                            XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
-                        } else {
+                    if (event.xbutton.button == Button1) {
+                        // this is read from the file
+                        if (repeat && num_of_clicks == 2) {
                             num_of_clicks = 0;
                         }
-                    } else if (num_of_clicks == 2) {
-                        if (!check_point_array(x, y, vertices, num_of_vertex)) {
-                            strcpy(text,"Target");
-                            vertices[0][0] = start_x;
-                            vertices[0][1] = start_y;
-                            vertices[num_of_vertex - 1][0] = x;
-                            vertices[num_of_vertex - 1][1] = y;
-                            XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
-                            XDrawPoint(dis, win, gc, x, y);
-                            XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
-                            // go
-                            compute(event, vertices, num_of_vertex);
-                            repeat = true;
-                        } else {
-                            //cout << "target inside\n";
-                            // 1 because the start is not in any triangle and it's accepted.
-                            num_of_clicks = 1;
+                        // get the start and target and set
+                        num_of_clicks++;
+                        if (num_of_clicks == 1) {
+                            if (!check_point_array(x, y, vertices, num_of_vertex)) {
+                                //cout << "start outside\n";
+                                strcpy(text,"Start");
+                                start_x = x;
+                                start_y = y;
+                                XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
+                                XDrawPoint(dis, win, gc, x, y);
+                                XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+                            } else {
+                                num_of_clicks = 0;
+                            }
+                        } else if (num_of_clicks == 2) {
+                            if (!check_point_array(x, y, vertices, num_of_vertex)) {
+                                strcpy(text,"Target");
+                                vertices[0][0] = start_x;
+                                vertices[0][1] = start_y;
+                                vertices[num_of_vertex - 1][0] = x;
+                                vertices[num_of_vertex - 1][1] = y;
+                                XSetForeground(dis, gc, (unsigned long) (rand() % event.xbutton.x % 255));
+                                XDrawPoint(dis, win, gc, x, y);
+                                XDrawString(dis, win, gc, x, y, text, (int) strlen(text));
+                                // go
+                                compute(event, vertices, num_of_vertex);
+                                repeat = true;
+                            } else {
+                                // 1 because the start is not in any triangle and it's accepted.
+                                num_of_clicks = 1;
+                            }
                         }
+                    } else if (event.xbutton.button == Button3) {
+                        close_x();
                     }
                 }
                 break;
             default:break;
         }
     }
-#pragma clang diagnostic pop
-/*-------------------------------------------------------------------------------------------*/
 }
 
 void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
@@ -440,13 +449,11 @@ void dijkstra(const Graph  &my_graph, const int &start, const int &target, vecto
     // total number of vertices my_graph.size()
     vector<float> d(my_graph.size());
     vector<int> parent(my_graph.size());
-
     // fill with Maximum value for int.
     for(int i = 0 ; i < my_graph.size(); i++) {
         d[i] = numeric_limits<float>::max();
         parent[i] = -1;
     }
-
     // priority queue on d
     priority_queue<pair<int, float>, vector<pair<int, float> >, Comparator> priority_queue1;
 
@@ -518,7 +525,6 @@ bool check_triangle(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3
     float A2 = area(x1, y1, x, y, x3, y3);
     // triangle PAB
     float A3 = area(x1, y1, x2, y2, x, y);
-
     // if sum of A1, A2 and A3 is same as A then inside.
     return (A == A1 + A2 + A3);
 }
@@ -597,7 +603,7 @@ string parse_string(std::string str) {
 }
 
 void init_x(int bound) {
-// get the colors black and white (see section for details)
+    // get the colors black and white (see section for details)
     unsigned long black,white;
 
     dis=XOpenDisplay((char *)0);
