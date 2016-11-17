@@ -353,14 +353,6 @@ void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
     Graph graph;
     // set the size
     graph.resize((unsigned long) (num_of_vertex));
-
-    /*for (int index = 0; index < num_of_vertex; index++) {
-        for (int j = 0; j < 2; j++) {
-            printf("shrink_array[%d][%d] = %d\n", index,j, vertices[index][j] );
-        }
-        printf("\n");
-    }*/
-
     // 1. check if direct edge exists between start and target
     // connect the two and check with all other existing triangle edges
     // this is the edge from start to target
@@ -379,7 +371,6 @@ void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
         // now check
         if (check_intersection(p1, q1, p2, q2)) {
             // intersection
-            //cout << "Yes\n"; // if there is no way out. do something.
             edge_start_to_target++;
         }
     }
@@ -389,19 +380,13 @@ void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
     } else {
         int start_intersection, target_intersection = 0;
         bool possible_path = true;
-        //cout << num_of_vertex << "=num_of_vertex\n";
-        //cout << num_of_vertex - 1 << "=num_of_vertex - 1\n";
         for (int l = 0; l < num_of_vertex; l++) {
-            //cout << l << "=l\n";
             start_intersection = 0;
-            //cout << num_of_vertex << " :num_of_vertex\n";
             // pick en edge l and l + 1
             p1.x = vertices[l][0], p1.y = vertices[l][1];
             for (int m = l + 1; m < num_of_vertex; m++) {
-                //cout << m << "=m\n";
                 edge_i_to_i_plus_one = 0;
                 q1.x = vertices[m][0], q1.y = vertices[m][1];
-                //cout << l << " :triangle\n";
                 for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) {
                     // 1 to 2 / 2 to 3 / 1 to 3
                     if ((triangle % 3) == 0) {
@@ -416,7 +401,6 @@ void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
                         edge_i_to_i_plus_one++;
                     }
                 }
-
                 if (edge_i_to_i_plus_one == 0) {
                     // calc distance from p to q
                     distpq = calc_dist(p1.x, p1.y, q1.x, q1.y);
@@ -429,10 +413,7 @@ void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
                 }
                 if (edge_i_to_i_plus_one > 0 && m == num_of_vertex - 1) {
                     target_intersection++;
-                    //cout << target_intersection << ":no way in\n";
                 }
-
-                //cout <<
                 // no way out if there are intersections on all possible edges from start.
                 if (start_intersection == num_of_vertex - 1 || target_intersection == num_of_vertex - 1) {
                     cout << "there is no possible path\n";
