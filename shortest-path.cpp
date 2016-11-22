@@ -34,6 +34,7 @@ void dijkstra(const Graph &, const int &, const int &, vector<int> &);
 
 const int INIT_COLS = 6;
 const int NUM_COLS = 2;
+const float EPSILON = 0.0001f;
 struct Point{
     int x;
     int y;
@@ -64,6 +65,10 @@ void close_x();
 void redraw();
 
 bool check_intersection(Point, Point, Point, Point);
+
+//bool accurate_point_check(int x, int y, int pInt[][NUM_COLS], int array_size);
+
+bool on_the_line(int x, int y, int x1, int y1, int x2, int y2);
 
 int calc_dist(const int, const int, const int, const int);
 
@@ -387,49 +392,55 @@ void compute(XEvent &event, int vertices[][NUM_COLS], int line_count) {
         //cout << "There exists a direct edge from start to target\n";
         XDrawLine(dis,win,gc, vertices[0][0],vertices[0][1],vertices[num_of_vertex-1][0],vertices[num_of_vertex-1][1]);
     } else {
-        int start_intersection, target_intersection = 0;
-        bool possible_path = true;
+        bool possible_path, connects = false;
         for (int l = 0; l < num_of_vertex; l++) {
-            start_intersection = 0;
+            possible_path = true;
             // pick en edge l and l + 1
             p1.x = vertices[l][0], p1.y = vertices[l][1];
-            for (int m = l + 1; m < num_of_vertex; m++) {
-                edge_i_to_i_plus_one = 0;
-                q1.x = vertices[m][0], q1.y = vertices[m][1];
-                for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) {
-                    // 1 to 2 / 2 to 3 / 1 to 3
-                    if ((triangle % 3) == 0) {
-                        p2.x = vertices[triangle - 2][0], p2.y = vertices[triangle - 2][1];
-                        q2.x = vertices[triangle][0], q2.y = vertices[triangle][1];
+            // if the point is not in any triangle continue else skip
+            if (!check_point_array(p1.x, p1.y, vertices, num_of_vertex)) {
+                //cout << "Not inside nor on any line\n";
+                for (int m = l + 1; m < num_of_vertex; m++) {
+                    edge_i_to_i_plus_one = 0;
+                    q1.x = vertices[m][0], q1.y = vertices[m][1];
+                    if (!check_point_array(q1.x, q1.y, vertices, num_of_vertex)) {
+                        for (int triangle = 1; triangle < num_of_vertex - 1; triangle++) {
+                            // 1 to 2 / 2 to 3 / 1 to 3
+                            if ((triangle % 3) == 0) {
+                                p2.x = vertices[triangle - 2][0], p2.y = vertices[triangle - 2][1];
+                                q2.x = vertices[triangle][0], q2.y = vertices[triangle][1];
+                            } else {
+                                p2.x = vertices[triangle][0], p2.y = vertices[triangle][1];
+                                q2.x = vertices[triangle + 1][0], q2.y = vertices[triangle + 1][1];
+                            }
+                            // now check
+                            if (check_intersection(p1, q1, p2, q2)) {
+                                edge_i_to_i_plus_one++;
+                            }
+                        }
+                        if (edge_i_to_i_plus_one == 0) {
+                            connects = true;
+                            // calc distance from p to q
+                            distpq = calc_dist(p1.x, p1.y, q1.x, q1.y);
+                            //cout << "edge from " << l << " to " << m << ". distance = " << distpq << endl;
+                            graph[l].push_back(make_pair(m, distpq));
+                            graph[m].push_back(make_pair(l, distpq));
+                        }
                     } else {
-                        p2.x = vertices[triangle][0], p2.y = vertices[triangle][1];
-                        q2.x = vertices[triangle + 1][0], q2.y = vertices[triangle + 1][1];
-                    }
-                    // now check
-                    if (check_intersection(p1, q1, p2, q2)) {
-                        edge_i_to_i_plus_one++;
+                        //cout << "inside\n";
+                        possible_path = false;
                     }
                 }
-                if (edge_i_to_i_plus_one == 0) {
-                    // calc distance from p to q
-                    distpq = calc_dist(p1.x, p1.y, q1.x, q1.y);
-                    //cout << "edge from " << l << " to " << m << ". distance = " << distpq << endl;
-                    graph[l].push_back(make_pair(m, distpq));
-                    graph[m].push_back(make_pair(l, distpq));
-                } else if (edge_i_to_i_plus_one > 0) {
-                    //cout << "no edge from " << l << " to " << m << endl;
-                    start_intersection++;
-                }
-                if (edge_i_to_i_plus_one > 0 && m == num_of_vertex - 1) {
-                    target_intersection++;
-                }
-                // no way out if there are intersections on all possible edges from start.
-                if (start_intersection == num_of_vertex - 1 || target_intersection == num_of_vertex - 1) {
-                    cout << "there is no possible path\n";
-                    possible_path = false;
-                }
+            } else {
+                //cout << "inside\n";
+                possible_path = false;
             }
             //cout << "\n";
+            if (!connects) {
+                cout << "No possible path\n";
+                possible_path = false;
+                break;
+            }
         }
         if (possible_path) {
             vector<int> path;
@@ -526,7 +537,12 @@ bool check_triangle(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3
     // triangle PAB
     float A3 = area(x1, y1, x2, y2, x, y);
     // if sum of A1, A2 and A3 is same as A then inside.
-    return (A == A1 + A2 + A3);
+    return (A == A1 + A2 + A3) && !on_the_line(x, y, x1, y1, x2, y2)
+           && !on_the_line(x, y, x2, y2, x3, y3) && !on_the_line(x, y, x3, y3, x1, y1);
+}
+
+bool on_the_line(int x, int y, int x1, int y1, int x2, int y2) {
+    return EPSILON < (calc_dist(x, y, x1, y1) + calc_dist(x1, y1, x2, y2) - calc_dist(x, y, x2, y2)) < EPSILON;
 }
 
 float area(int x1, int y1, int x2, int y2, int x3, int y3) {
