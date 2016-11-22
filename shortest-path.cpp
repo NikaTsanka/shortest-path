@@ -586,7 +586,7 @@ bool check_intersection(Point p1, Point q1, Point p2, Point q2) {
 }
 
 int calc_dist(const int x1, const int y1, const int x2, const int y2) {
-    return (int) sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+    return (int) sqrt(pow(x2 - x1, 2.0f) + pow(y2 - y1, 2.0f));
 }
 
 double det(int px, int py, int qx, int qy, int rx, int ry) {
