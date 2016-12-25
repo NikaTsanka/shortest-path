@@ -11,4 +11,4 @@ Two input modes:
 When a right mouse-click event is received, this ends the triangle input; if there are one or two points of an unfinished 
 triangle left, they are discarded. Then two left mouse-click events, which give the start and target point of the shortest path. Yey! :simple_smile:
 
-![alt text](https://github.com/NikaTsanka/ "Demo")
+![alt text](https://github.com/NikaTsanka/shortest-path-project1/blob/master/demo.gif "Demo")
