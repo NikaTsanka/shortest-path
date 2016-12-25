@@ -1,10 +1,3 @@
-/*
- * CSC I0600 - Fundamental Algorithms - Fall Semester 2016
- * Homework Project 1
- * Nika Tsankashvili
- * */
-
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
